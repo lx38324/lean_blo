@@ -9,7 +9,7 @@ noncomputable section
 
 /-- Finite-horizon sum shorthand. -/
 def SeqSum (T : ℕ) (a : ℕ → ℝ) : ℝ :=
-  ∑ t in Finset.range T, a t
+  ∑ t ∈ Finset.range T, a t
 
 /--
 A cumulative Lyapunov budget for the fallback-safe fixed-penalty theorem.
@@ -62,21 +62,26 @@ theorem SafetyBudget.gradient_average_bound {T : ℕ} (hT : 0 < T)
         + 4 * B.Cb * SeqSum T B.b / (B.eta * (T : ℝ))
         + 4 * B.Cd * SeqSum T B.d / (B.eta * (T : ℝ)) := by
   have hRsum_nonneg : 0 ≤ SeqSum T B.R := by
-    exact Finset.sum_nonneg (fun t _ => B.R_nonneg t)
-  have hcoefR_nonneg : 0 ≤ B.eta * B.lam ^ 2 * B.CR / 4 := by positivity
+    simpa [SeqSum] using Finset.sum_nonneg (fun t _ => B.R_nonneg t)
+  have hcoefR_nonneg : 0 ≤ B.eta * B.lam ^ 2 * B.CR / 4 := by
+    exact div_nonneg
+      (mul_nonneg (mul_nonneg (le_of_lt B.eta_pos) (sq_nonneg B.lam))
+        (le_of_lt B.CR_pos))
+      (by norm_num)
   have hres_nonneg : 0 ≤ (B.eta * B.lam ^ 2 * B.CR / 4) * SeqSum T B.R := by
     exact mul_nonneg hcoefR_nonneg hRsum_nonneg
   have hG_budget : (B.eta / 4) * SeqSum T B.Gsq ≤ B.rhs := by
     dsimp [SafetyBudget.rhs]
     nlinarith [B.cumulative_budget, hres_nonneg]
   have hTreal : 0 < (T : ℝ) := by exact_mod_cast hT
-  have hscale_nonneg : 0 ≤ 4 / (B.eta * (T : ℝ)) := by positivity
+  have hden_pos : 0 < B.eta * (T : ℝ) := mul_pos B.eta_pos hTreal
+  have hscale_nonneg : 0 ≤ 4 / (B.eta * (T : ℝ)) := by
+    exact le_of_lt (div_pos (by norm_num) hden_pos)
   have hscaled := mul_le_mul_of_nonneg_left hG_budget hscale_nonneg
   calc
     (1 / (T : ℝ)) * SeqSum T B.Gsq
         = (4 / (B.eta * (T : ℝ))) * ((B.eta / 4) * SeqSum T B.Gsq) := by
           field_simp [ne_of_gt B.eta_pos, ne_of_gt hTreal]
-          ring
     _ ≤ (4 / (B.eta * (T : ℝ))) * B.rhs := by
           simpa [mul_comm, mul_left_comm, mul_assoc] using hscaled
     _ = 4 * (B.Psi0 - B.Pstar) / (B.eta * (T : ℝ))
@@ -100,8 +105,9 @@ theorem SafetyBudget.residual_average_bound {T : ℕ} (hT : 0 < T)
         + 4 * B.Cb * SeqSum T B.b / (B.eta * B.lam ^ 2 * B.CR * (T : ℝ))
         + 4 * B.Cd * SeqSum T B.d / (B.eta * B.lam ^ 2 * B.CR * (T : ℝ)) := by
   have hGsum_nonneg : 0 ≤ SeqSum T B.Gsq := by
-    exact Finset.sum_nonneg (fun t _ => B.Gsq_nonneg t)
-  have hcoefG_nonneg : 0 ≤ B.eta / 4 := by positivity
+    simpa [SeqSum] using Finset.sum_nonneg (fun t _ => B.Gsq_nonneg t)
+  have hcoefG_nonneg : 0 ≤ B.eta / 4 := by
+    exact div_nonneg (le_of_lt B.eta_pos) (by norm_num)
   have hstat_nonneg : 0 ≤ (B.eta / 4) * SeqSum T B.Gsq := by
     exact mul_nonneg hcoefG_nonneg hGsum_nonneg
   have hR_budget : (B.eta * B.lam ^ 2 * B.CR / 4) * SeqSum T B.R ≤ B.rhs := by
@@ -109,16 +115,17 @@ theorem SafetyBudget.residual_average_bound {T : ℕ} (hT : 0 < T)
     nlinarith [B.cumulative_budget, hstat_nonneg]
   have hTreal : 0 < (T : ℝ) := by exact_mod_cast hT
   have hden_pos : 0 < B.eta * B.lam ^ 2 * B.CR * (T : ℝ) := by
-    have hlam_sq_pos : 0 < B.lam ^ 2 := by positivity
-    positivity
-  have hscale_nonneg : 0 ≤ 4 / (B.eta * B.lam ^ 2 * B.CR * (T : ℝ)) := by positivity
+    have hlam_sq_pos : 0 < B.lam ^ 2 := sq_pos_of_ne_zero (ne_of_gt B.lam_pos)
+    exact mul_pos (mul_pos (mul_pos B.eta_pos hlam_sq_pos) B.CR_pos) hTreal
+  have hscale_nonneg : 0 ≤ 4 / (B.eta * B.lam ^ 2 * B.CR * (T : ℝ)) := by
+    exact le_of_lt (div_pos (by norm_num) hden_pos)
   have hscaled := mul_le_mul_of_nonneg_left hR_budget hscale_nonneg
   calc
     (1 / (T : ℝ)) * SeqSum T B.R
         = (4 / (B.eta * B.lam ^ 2 * B.CR * (T : ℝ))) *
             ((B.eta * B.lam ^ 2 * B.CR / 4) * SeqSum T B.R) := by
-          field_simp [ne_of_gt hden_pos]
-          ring
+          field_simp [ne_of_gt B.eta_pos, ne_of_gt B.lam_pos, ne_of_gt B.CR_pos,
+            ne_of_gt hTreal]
     _ ≤ (4 / (B.eta * B.lam ^ 2 * B.CR * (T : ℝ))) * B.rhs := by
           simpa [mul_comm, mul_left_comm, mul_assoc] using hscaled
     _ = 4 * (B.Psi0 - B.Pstar) / (B.eta * B.lam ^ 2 * B.CR * (T : ℝ))
@@ -189,8 +196,12 @@ theorem ImprovementBudget.gradient_improvement_average_bound {T : ℕ} (hT : 0 <
         + 4 * B.Cd * SeqSum T B.d / (B.eta * (T : ℝ))
         + 4 * B.Czeta * SeqSum T B.zeta / (B.eta * (T : ℝ)) := by
   have hRsum_nonneg : 0 ≤ SeqSum T B.R := by
-    exact Finset.sum_nonneg (fun t _ => B.R_nonneg t)
-  have hcoefR_nonneg : 0 ≤ B.eta * B.lam ^ 2 * B.CR / 4 := by positivity
+    simpa [SeqSum] using Finset.sum_nonneg (fun t _ => B.R_nonneg t)
+  have hcoefR_nonneg : 0 ≤ B.eta * B.lam ^ 2 * B.CR / 4 := by
+    exact div_nonneg
+      (mul_nonneg (mul_nonneg (le_of_lt B.eta_pos) (sq_nonneg B.lam))
+        (le_of_lt B.CR_pos))
+      (by norm_num)
   have hres_nonneg : 0 ≤ (B.eta * B.lam ^ 2 * B.CR / 4) * SeqSum T B.R := by
     exact mul_nonneg hcoefR_nonneg hRsum_nonneg
   have hmain_budget :
@@ -199,7 +210,9 @@ theorem ImprovementBudget.gradient_improvement_average_bound {T : ℕ} (hT : 0 <
     dsimp [ImprovementBudget.rhs]
     nlinarith [B.cumulative_budget, hres_nonneg]
   have hTreal : 0 < (T : ℝ) := by exact_mod_cast hT
-  have hscale_nonneg : 0 ≤ 4 / (B.eta * (T : ℝ)) := by positivity
+  have hden_pos : 0 < B.eta * (T : ℝ) := mul_pos B.eta_pos hTreal
+  have hscale_nonneg : 0 ≤ 4 / (B.eta * (T : ℝ)) := by
+    exact le_of_lt (div_pos (by norm_num) hden_pos)
   have hscaled := mul_le_mul_of_nonneg_left hmain_budget hscale_nonneg
   calc
     (1 / (T : ℝ)) * SeqSum T B.Gsq
@@ -208,7 +221,7 @@ theorem ImprovementBudget.gradient_improvement_average_bound {T : ℕ} (hT : 0 <
             ((B.eta / 4) * SeqSum T B.Gsq +
               (B.eta * B.lam ^ 2 / 2) * SeqSum T B.Delta) := by
           field_simp [ne_of_gt B.eta_pos, ne_of_gt hTreal]
-          ring
+          ring_nf
     _ ≤ (4 / (B.eta * (T : ℝ))) * B.rhs := by
           simpa [mul_comm, mul_left_comm, mul_assoc] using hscaled
     _ = 4 * (B.Psi0 - B.Pstar) / (B.eta * (T : ℝ))
@@ -231,11 +244,15 @@ theorem ImprovementBudget.residual_average_bound {T : ℕ} (hT : 0 < T)
         + 4 * B.Cd * SeqSum T B.d / (B.eta * B.lam ^ 2 * B.CR * (T : ℝ))
         + 4 * B.Czeta * SeqSum T B.zeta / (B.eta * B.lam ^ 2 * B.CR * (T : ℝ)) := by
   have hGsum_nonneg : 0 ≤ SeqSum T B.Gsq := by
-    exact Finset.sum_nonneg (fun t _ => B.Gsq_nonneg t)
+    simpa [SeqSum] using Finset.sum_nonneg (fun t _ => B.Gsq_nonneg t)
   have hDsum_nonneg : 0 ≤ SeqSum T B.Delta := by
-    exact Finset.sum_nonneg (fun t _ => B.Delta_nonneg t)
-  have hcoefG_nonneg : 0 ≤ B.eta / 4 := by positivity
-  have hcoefD_nonneg : 0 ≤ B.eta * B.lam ^ 2 / 2 := by positivity
+    simpa [SeqSum] using Finset.sum_nonneg (fun t _ => B.Delta_nonneg t)
+  have hcoefG_nonneg : 0 ≤ B.eta / 4 := by
+    exact div_nonneg (le_of_lt B.eta_pos) (by norm_num)
+  have hcoefD_nonneg : 0 ≤ B.eta * B.lam ^ 2 / 2 := by
+    exact div_nonneg
+      (mul_nonneg (le_of_lt B.eta_pos) (sq_nonneg B.lam))
+      (by norm_num)
   have hstat_nonneg : 0 ≤ (B.eta / 4) * SeqSum T B.Gsq := by
     exact mul_nonneg hcoefG_nonneg hGsum_nonneg
   have hdelta_nonneg : 0 ≤ (B.eta * B.lam ^ 2 / 2) * SeqSum T B.Delta := by
@@ -245,16 +262,17 @@ theorem ImprovementBudget.residual_average_bound {T : ℕ} (hT : 0 < T)
     nlinarith [B.cumulative_budget, hstat_nonneg, hdelta_nonneg]
   have hTreal : 0 < (T : ℝ) := by exact_mod_cast hT
   have hden_pos : 0 < B.eta * B.lam ^ 2 * B.CR * (T : ℝ) := by
-    have hlam_sq_pos : 0 < B.lam ^ 2 := by positivity
-    positivity
-  have hscale_nonneg : 0 ≤ 4 / (B.eta * B.lam ^ 2 * B.CR * (T : ℝ)) := by positivity
+    have hlam_sq_pos : 0 < B.lam ^ 2 := sq_pos_of_ne_zero (ne_of_gt B.lam_pos)
+    exact mul_pos (mul_pos (mul_pos B.eta_pos hlam_sq_pos) B.CR_pos) hTreal
+  have hscale_nonneg : 0 ≤ 4 / (B.eta * B.lam ^ 2 * B.CR * (T : ℝ)) := by
+    exact le_of_lt (div_pos (by norm_num) hden_pos)
   have hscaled := mul_le_mul_of_nonneg_left hR_budget hscale_nonneg
   calc
     (1 / (T : ℝ)) * SeqSum T B.R
         = (4 / (B.eta * B.lam ^ 2 * B.CR * (T : ℝ))) *
             ((B.eta * B.lam ^ 2 * B.CR / 4) * SeqSum T B.R) := by
-          field_simp [ne_of_gt hden_pos]
-          ring
+          field_simp [ne_of_gt B.eta_pos, ne_of_gt B.lam_pos, ne_of_gt B.CR_pos,
+            ne_of_gt hTreal]
     _ ≤ (4 / (B.eta * B.lam ^ 2 * B.CR * (T : ℝ))) * B.rhs := by
           simpa [mul_comm, mul_left_comm, mul_assoc] using hscaled
     _ = 4 * (B.Psi0 - B.Pstar) / (B.eta * B.lam ^ 2 * B.CR * (T : ℝ))
