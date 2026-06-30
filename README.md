@@ -10,7 +10,9 @@ The current Lean file formalizes the finite-horizon Lyapunov-budget part of the 
 - averaged gradient-stationarity bound;
 - averaged residual bound;
 - upper-gradient-improvement budget with the corrected `zeta` coefficient;
-- averaged stationarity-plus-improvement bound.
+- averaged stationarity-plus-improvement bound;
+- error-free corollaries for both theorem families when the accumulated
+  perturbation budgets vanish.
 
 The analytic assumptions are intentionally represented as hypotheses. This is appropriate for the current proof stage: the original argument is an interface theorem, not yet a full formalization of differentiability of the value function, smoothness of the LLM fine-tuning loss, or the construction of lower-response anchors.
 

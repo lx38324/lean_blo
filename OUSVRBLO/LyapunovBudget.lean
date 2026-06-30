@@ -129,6 +129,34 @@ theorem SafetyBudget.residual_average_bound {T : ℕ} (hT : 0 < T)
           ring
 
 /--
+Error-free specialization of the fallback-safe averaged stationarity bound.
+
+When the safeguard, value-gradient, and drift error budgets vanish over the
+finite horizon, the average squared stationarity measure is controlled only by
+the initial Lyapunov gap.
+-/
+theorem SafetyBudget.gradient_average_bound_no_errors {T : ℕ} (hT : 0 < T)
+    (B : SafetyBudget T) (heps : SeqSum T B.eps = 0) (hb : SeqSum T B.b = 0)
+    (hd : SeqSum T B.d = 0) :
+    (1 / (T : ℝ)) * SeqSum T B.Gsq
+      ≤ 4 * (B.Psi0 - B.Pstar) / (B.eta * (T : ℝ)) := by
+  have h := SafetyBudget.gradient_average_bound hT B
+  rw [heps, hb, hd] at h
+  simpa using h
+
+/--
+Error-free specialization of the fallback-safe averaged residual bound.
+-/
+theorem SafetyBudget.residual_average_bound_no_errors {T : ℕ} (hT : 0 < T)
+    (B : SafetyBudget T) (heps : SeqSum T B.eps = 0) (hb : SeqSum T B.b = 0)
+    (hd : SeqSum T B.d = 0) :
+    (1 / (T : ℝ)) * SeqSum T B.R
+      ≤ 4 * (B.Psi0 - B.Pstar) / (B.eta * B.lam ^ 2 * B.CR * (T : ℝ)) := by
+  have h := SafetyBudget.residual_average_bound hT B
+  rw [heps, hb, hd] at h
+  simpa using h
+
+/--
 Cumulative budget for the upper-gradient-improvement theorem.
 
 `Delta` is the certified improvement of the accepted online anchor over the
@@ -264,6 +292,37 @@ theorem ImprovementBudget.residual_average_bound {T : ℕ} (hT : 0 < T)
         + 4 * B.Czeta * SeqSum T B.zeta / (B.eta * B.lam ^ 2 * B.CR * (T : ℝ)) := by
           dsimp [ImprovementBudget.rhs]
           ring
+
+/--
+Error-free specialization of the upper-gradient-improvement averaged bound.
+
+This is the clean finite-horizon statement: with zero accumulated perturbation
+and proxy-calibration budgets, the average stationarity plus certified
+upper-anchor improvement is controlled by the initial Lyapunov gap.
+-/
+theorem ImprovementBudget.gradient_improvement_average_bound_no_errors {T : ℕ}
+    (hT : 0 < T) (B : ImprovementBudget T) (heps : SeqSum T B.eps = 0)
+    (hb : SeqSum T B.b = 0) (hd : SeqSum T B.d = 0)
+    (hzeta : SeqSum T B.zeta = 0) :
+    (1 / (T : ℝ)) * SeqSum T B.Gsq
+      + 2 * B.lam ^ 2 * ((1 / (T : ℝ)) * SeqSum T B.Delta)
+      ≤ 4 * (B.Psi0 - B.Pstar) / (B.eta * (T : ℝ)) := by
+  have h := ImprovementBudget.gradient_improvement_average_bound hT B
+  rw [heps, hb, hd, hzeta] at h
+  simpa using h
+
+/--
+Error-free specialization of the upper-gradient-improvement residual bound.
+-/
+theorem ImprovementBudget.residual_average_bound_no_errors {T : ℕ} (hT : 0 < T)
+    (B : ImprovementBudget T) (heps : SeqSum T B.eps = 0)
+    (hb : SeqSum T B.b = 0) (hd : SeqSum T B.d = 0)
+    (hzeta : SeqSum T B.zeta = 0) :
+    (1 / (T : ℝ)) * SeqSum T B.R
+      ≤ 4 * (B.Psi0 - B.Pstar) / (B.eta * B.lam ^ 2 * B.CR * (T : ℝ)) := by
+  have h := ImprovementBudget.residual_average_bound hT B
+  rw [heps, hb, hd, hzeta] at h
+  simpa using h
 
 end
 
