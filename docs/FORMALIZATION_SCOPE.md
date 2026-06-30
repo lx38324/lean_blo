@@ -20,6 +20,10 @@ cumulative safety budget
 cumulative improvement budget
   => averaged stationarity-plus-improvement bound
   => averaged residual bound
+
+zero accumulated error budgets
+  => clean averaged fallback-safe stationarity/residual bounds
+  => clean averaged upper-gradient-improvement/residual bounds
 ```
 
 The variables `Gsq`, `R`, `Delta`, `eps`, `b`, `d`, and `zeta` are represented as real-valued sequences. Nonnegativity assumptions are explicit where they are needed to drop terms.
