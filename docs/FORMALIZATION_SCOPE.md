@@ -1,38 +1,50 @@
 # Formalization scope
 
-This repository currently formalizes the algebraic Lyapunov-budget layer of the OUSVR-BLO online value-anchor proof.
+This repository formalizes the proof skeleton of the revised OUSVR-BLO online
+value-anchor theorem.
 
-The informal mathematical proof has two layers.
+## Coverage map
 
-First, a fallback-safe fixed-penalty stationarity theorem states that if the accepted online anchor satisfies residual contraction, residual-to-value-gradient compatibility, and residual drift compatibility, then the fixed-penalty surrogate stationarity budget is controlled.
+- Sections 1-4: represented as explicit hypotheses and abstract interfaces.
+- Section 5: represented by `SafetyBudget` and `SafetyStepSystem`.
+- Section 6: represented by `SafetyStepSystem.one_step_lyapunov`,
+  `SafetyStepSystem.cumulative_budget_to_time`, and
+  `SafetyStepSystem.cumulative_budget`.
+- Sections 7-8: represented by `ImprovementBudget` and
+  `ImprovementStepSystem`.
+- Section 9: represented by `ImprovementStepSystem.Czeta`,
+  `ImprovementStepSystem.Czeta_le`, and the enhanced cumulative budget.
+- Section 10: represented by `ProxyComparison.true_error_improves` and
+  `ProxyR2Plus.r2plus`.
+- Sections 11-14: documented as modeling interpretation and claim boundary.
 
-Second, an upper-gradient-improvement theorem states that if the accepted online anchor improves the value-gradient approximation over a lower-only anchor, then the improvement appears explicitly as a negative term in the Lyapunov descent budget. The revised version accounts for the `zeta` error inside the residual drift calculation by using an abstract `Czeta` coefficient.
+## What Lean checks
 
-## What Lean checks now
+Lean checks:
 
-The Lean file starts from the already-summed finite-horizon Lyapunov inequalities and proves the averaged consequences:
+- coefficient accounting in the one-step Lyapunov descent;
+- telescoping finite-horizon budget inequalities;
+- averaged stationarity, residual, and improvement bounds;
+- the corrected `zeta` contribution in the enhanced theorem;
+- the proxy calibration algebra that converts proxy improvement into true error
+  improvement;
+- scalar sufficient-condition lemmas for selected analytic interfaces.
 
-```text
-cumulative safety budget
-  => averaged stationarity bound
-  => averaged residual bound
+The variables `Gsq`, `R`, `Delta`, `eps`, `b`, `d`, and `zeta` are represented as
+real-valued sequences. Nonnegativity assumptions are explicit where they are
+needed to drop terms.
 
-cumulative improvement budget
-  => averaged stationarity-plus-improvement bound
-  => averaged residual bound
-```
+## Remaining analytic boundary
 
-The variables `Gsq`, `R`, `Delta`, `eps`, `b`, `d`, and `zeta` are represented as real-valued sequences. Nonnegativity assumptions are explicit where they are needed to drop terms.
+The following are still not claimed as globally proved for real LLM/LoRA
+training:
 
-## What remains analytic
+1. global differentiability and smoothness of the learned value function;
+2. construction and uniqueness of neural lower-response anchors;
+3. residual contraction produced by a concrete safeguard implementation;
+4. residual drift compatibility for a full training system;
+5. original BLO KKT convergence or general nonconvex BLO global convergence.
 
-The following are intentionally left as hypotheses for later formalization:
-
-1. smoothness of the fixed-penalty surrogate;
-2. construction of the value function or local regularized value function;
-3. residual contraction produced by the safeguard;
-4. residual-to-value-gradient error control;
-5. residual drift compatibility;
-6. the LLM/LoRA local regularized lower-response model.
-
-This is consistent with the intended claim: learned online value-anchor updates can be safely embedded into a value-function BLO update through an explicit residual interface.
+The current claim is therefore an interface theorem: if the listed analytic
+interfaces hold, the OUSVR-BLO value-anchor proof skeleton and its advertised
+finite-horizon consequences are machine-checked.
