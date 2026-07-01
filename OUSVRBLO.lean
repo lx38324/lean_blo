@@ -3,3 +3,5 @@ import OUSVRBLO.LyapunovBudget
 import OUSVRBLO.SafetyDescent
 import OUSVRBLO.ImprovementDescent
 import OUSVRBLO.ProxyCertificate
+import OUSVRBLO.AnalyticInterfaces
+import OUSVRBLO.LocalSurrogate
