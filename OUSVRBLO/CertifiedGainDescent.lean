@@ -109,8 +109,17 @@ theorem CertifiedGainStepSystem.one_step_lyapunov
       S.toSafetyParameters.envelope_coeff_nonneg
   have htwo := S.toSafetyParameters.two_alpha_Aeta_le
   have hdrop := S.toSafetyParameters.residual_drop_coeff
-  have heps := S.toSafetyParameters.eps_coeff_bound
-  have hb := S.toSafetyParameters.b_coeff_bound
+  have heps :
+      S.eta * S.lam ^ 2 * S.CR / 2
+        + S.alpha * (1 + S.CR * S.beta)
+        ≤ S.eta * S.lam ^ 2 * S.CR * (3 / 4 + 1 / S.theta) := by
+    simpa [CertifiedGainStepSystem.Ceps, SafetyParameters.Ceps] using
+      S.toSafetyParameters.eps_coeff_bound
+  have hb :
+      S.eta * S.lam ^ 2 / 2 + S.alpha * S.beta
+        ≤ 3 / 4 * S.eta * S.lam ^ 2 := by
+    simpa [CertifiedGainStepSystem.Cb, SafetyParameters.Cb] using
+      S.toSafetyParameters.b_coeff_bound
   have htwo_scaled :=
     mul_le_mul_of_nonneg_right htwo (S.Gsq_nonneg t)
   have hdrop_scaled :=
@@ -119,9 +128,8 @@ theorem CertifiedGainStepSystem.one_step_lyapunov
     mul_le_mul_of_nonneg_right heps (S.eps_nonneg t)
   have hb_scaled :=
     mul_le_mul_of_nonneg_right hb (S.b_nonneg t)
-  ring_nf at hcombined hcontr_scaled htwo_scaled hdrop_scaled
-    heps_scaled hb_scaled ⊢
-  nlinarith [hcombined, hcontr_scaled, htwo_scaled, hdrop_scaled,
+  ring_nf at hcombined hcontr_scaled htwo_scaled hdrop_scaled heps_scaled hb_scaled ⊢
+  linarith [hcombined, hcontr_scaled, htwo_scaled, hdrop_scaled,
     heps_scaled, hb_scaled]
 
 theorem CertifiedGainStepSystem.Cgain_lower
