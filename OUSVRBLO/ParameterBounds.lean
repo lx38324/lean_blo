@@ -193,7 +193,11 @@ theorem SafetyParameters.b_coeff_bound (P : SafetyParameters) :
 theorem SafetyParameters.Cgain_lower (P : SafetyParameters) :
     P.eta * P.lam ^ 2 / 2 ≤ P.Cgain := by
   have hterm : 0 ≤ 2 * P.alpha * P.Aeta * P.lam ^ 2 := by
-    positivity
+    exact mul_nonneg
+      (mul_nonneg
+        (mul_nonneg (by norm_num) P.alpha_nonneg)
+        P.Aeta_nonneg)
+      (sq_nonneg P.lam)
   dsimp [SafetyParameters.Cgain]
   linarith
 
@@ -233,19 +237,35 @@ def DriftParameterization.beta (D : DriftParameterization) : ℝ :=
 
 theorem DriftParameterization.Aeta_nonneg (D : DriftParameterization) :
     0 ≤ D.Aeta := by
+  have hfirst : 0 ≤ D.eta * D.mu / 2 := by
+    exact div_nonneg
+      (mul_nonneg (le_of_lt D.eta_pos) (le_of_lt D.mu_pos))
+      (by norm_num)
+  have hsecond : 0 ≤ D.LR * D.eta ^ 2 / 2 := by
+    exact div_nonneg
+      (mul_nonneg D.LR_nonneg (sq_nonneg D.eta))
+      (by norm_num)
   dsimp [DriftParameterization.Aeta]
-  positivity
+  exact add_nonneg hfirst hsecond
 
 theorem DriftParameterization.beta_nonneg (D : DriftParameterization) :
     0 ≤ D.beta := by
+  have hfirst : 0 ≤ 2 * D.Aeta * D.lam ^ 2 := by
+    exact mul_nonneg
+      (mul_nonneg (by norm_num) D.Aeta_nonneg)
+      (sq_nonneg D.lam)
+  have hsecond : 0 ≤ D.eta / (2 * D.mu) := by
+    exact div_nonneg (le_of_lt D.eta_pos)
+      (mul_nonneg (by norm_num) (le_of_lt D.mu_pos))
   dsimp [DriftParameterization.beta]
-  have hA := D.Aeta_nonneg
-  positivity
+  exact add_nonneg hfirst hsecond
 
 theorem DriftParameterization.drift_scale_le (D : DriftParameterization) :
     2 * D.Aeta * D.lam ^ 2 ≤ D.beta := by
+  have htail : 0 ≤ D.eta / (2 * D.mu) := by
+    exact div_nonneg (le_of_lt D.eta_pos)
+      (mul_nonneg (by norm_num) (le_of_lt D.mu_pos))
   dsimp [DriftParameterization.beta]
-  have htail : 0 ≤ D.eta / (2 * D.mu) := by positivity
   linarith
 
 /-- Build the public safety parameter package from the analytic drift
