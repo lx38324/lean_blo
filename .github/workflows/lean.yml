@@ -15,9 +15,25 @@ jobs:
           curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
       - name: Build
+        id: lean_build
+        continue-on-error: true
         run: |
-          lake update
-          lake exe cache get || true
-          lake build
+          {
+            lake update
+            lake exe cache get || true
+            lake build
+          } > lean-build.log 2>&1
+      - name: Upload Lean build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lean-build-log-${{ github.run_id }}
+          path: lean-build.log
       - name: Placeholder-proof check
+        if: always()
         run: bash scripts/check_no_placeholder.sh
+      - name: Report Lean build failure
+        if: steps.lean_build.outcome == 'failure'
+        run: |
+          tail -n 200 lean-build.log
+          exit 1
