@@ -15,7 +15,7 @@ theorem sqrtTwo_ne_zero : sqrtTwo ≠ 0 := ne_of_gt sqrtTwo_pos
 
 theorem sqrtTwo_sq : sqrtTwo ^ 2 = 2 := by
   dsimp [sqrtTwo]
-  simpa using Real.sq_sqrt (by norm_num : (0 : ℝ) ≤ 2)
+  exact Real.sq_sqrt (by norm_num : (0 : ℝ) ≤ 2)
 
 /-- Exact parameterization used in the manuscript residual-drift proof. -/
 structure ManuscriptDriftParameters where
@@ -62,7 +62,6 @@ theorem ManuscriptDriftParameters.parameterization_Aeta
     ManuscriptDriftParameters.mu, ManuscriptDriftParameters.Aeta,
     DriftParameterization.Aeta]
   field_simp [sqrtTwo_ne_zero, ne_of_gt M.lam_pos]
-  ring
 
 /-- The abstract drift coefficient is exactly
 `sqrt 2 * lambda * eta + lambda^2 * L_R * eta^2`. -/
@@ -74,7 +73,8 @@ theorem ManuscriptDriftParameters.parameterization_beta
     ManuscriptDriftParameters.mu, ManuscriptDriftParameters.Aeta,
     ManuscriptDriftParameters.betaEta]
   field_simp [sqrtTwo_ne_zero, ne_of_gt M.lam_pos]
-  nlinarith [sqrtTwo_sq]
+  rw [sqrtTwo_sq]
+  ring
 
 /-- Direct constructor from the manuscript small-step condition
 `C_R * beta_eta ≤ theta / 4` to the public parameter package. -/
