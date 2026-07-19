@@ -14,12 +14,11 @@ jobs:
         run: |
           curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-      - name: Build
+      - name: Build locked Lean project
         id: lean_build
         continue-on-error: true
         run: |
           {
-            lake update
             lake exe cache get || true
             lake build
           } > lean-build.log 2>&1
