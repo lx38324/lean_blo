@@ -73,7 +73,7 @@ theorem ManuscriptDriftParameters.parameterization_beta
     ManuscriptDriftParameters.mu, ManuscriptDriftParameters.Aeta,
     ManuscriptDriftParameters.betaEta]
   field_simp [sqrtTwo_ne_zero, ne_of_gt M.lam_pos]
-  rw [sqrtTwo_sq]
+  conv_rhs => rw [sqrtTwo_sq]
   ring
 
 /-- Direct constructor from the manuscript small-step condition
