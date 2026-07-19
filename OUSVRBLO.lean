@@ -2,6 +2,8 @@ import OUSVRBLO.ScalarFacts
 import OUSVRBLO.LyapunovBudget
 import OUSVRBLO.ParameterBounds
 import OUSVRBLO.SafeguardCertificate
+import OUSVRBLO.InexactDescent
+import OUSVRBLO.ResidualDrift
 import OUSVRBLO.SafetyDescent
 import OUSVRBLO.CertifiedSafety
 import OUSVRBLO.ImprovementDescent
