@@ -75,6 +75,7 @@ theorem ManuscriptDriftParameters.parameterization_beta
   field_simp [sqrtTwo_ne_zero, ne_of_gt M.lam_pos]
   ring_nf
   rw [sqrtTwo_sq]
+  ring
 
 /-- Direct constructor from the manuscript small-step condition
 `C_R * beta_eta ≤ theta / 4` to the public parameter package. -/
