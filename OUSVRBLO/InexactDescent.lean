@@ -2,6 +2,8 @@ import Mathlib
 
 namespace OUSVRBLO
 
+open scoped RealInnerProductSpace
+
 noncomputable section
 
 /-- Polarization identity in the exact form used by the inexact-gradient proof. -/
