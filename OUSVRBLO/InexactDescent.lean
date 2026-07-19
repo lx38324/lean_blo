@@ -12,12 +12,12 @@ theorem real_inner_self_add_identity
     (G Err : E) :
     ⟪G, G + Err⟫_ℝ =
       (‖G‖ ^ 2 + ‖G + Err‖ ^ 2 - ‖Err‖ ^ 2) / 2 := by
-  have hGG : ⟪G, G⟫_ℝ = ‖G‖ ^ 2 := by
-    simpa using (inner_self_eq_norm_sq_to_K (𝕜 := ℝ) G)
-  have hEE : ⟪Err, Err⟫_ℝ = ‖Err‖ ^ 2 := by
-    simpa using (inner_self_eq_norm_sq_to_K (𝕜 := ℝ) Err)
-  have hsumSelf : ⟪G + Err, G + Err⟫_ℝ = ‖G + Err‖ ^ 2 := by
-    simpa using (inner_self_eq_norm_sq_to_K (𝕜 := ℝ) (G + Err))
+  have hGG : ⟪G, G⟫_ℝ = ‖G‖ ^ 2 :=
+    inner_self_eq_norm_sq_to_K (𝕜 := ℝ) G
+  have hEE : ⟪Err, Err⟫_ℝ = ‖Err‖ ^ 2 :=
+    inner_self_eq_norm_sq_to_K (𝕜 := ℝ) Err
+  have hsumSelf : ⟪G + Err, G + Err⟫_ℝ = ‖G + Err‖ ^ 2 :=
+    inner_self_eq_norm_sq_to_K (𝕜 := ℝ) (G + Err)
   have hadd := real_inner_add_add_self G Err
   have hright : ⟪G, G + Err⟫_ℝ = ⟪G, G⟫_ℝ + ⟪G, Err⟫_ℝ := by
     exact inner_add_right G G Err
@@ -62,7 +62,6 @@ theorem inexact_gradient_descent_with_error_bound
     {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
     (Pnow Pnext eta LP lam CR Q b : ℝ) (G Err : E)
     (heta : 0 ≤ eta)
-    (hlam : 0 ≤ lam)
     (hstep : LP * eta ≤ 1)
     (hsmooth :
       Pnext ≤ Pnow
@@ -83,7 +82,6 @@ theorem inexact_gradient_descent_with_certified_gain
     {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
     (Pnow Pnext eta LP lam CR Q b Gamma : ℝ) (G Err : E)
     (heta : 0 ≤ eta)
-    (hlam : 0 ≤ lam)
     (hstep : LP * eta ≤ 1)
     (hsmooth :
       Pnext ≤ Pnow
