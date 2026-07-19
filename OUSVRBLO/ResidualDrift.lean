@@ -19,7 +19,6 @@ theorem young_product_with_parameter
     _ ≤ (1 / (2 * mu)) * (mu ^ 2 * s ^ 2 + a ^ 2) := hscaled
     _ = mu / 2 * s ^ 2 + 1 / (2 * mu) * a ^ 2 := by
       field_simp [ne_of_gt hmu]
-      ring
 
 /--
 Scalar sufficient conditions for the residual-drift recursion.
@@ -94,6 +93,18 @@ theorem CertifiedResidualDriftScalar.certified_drift
   have hyoung := young_product_with_parameter S.H S.stepNorm S.mu S.mu_pos
   have heta : 0 ≤ S.eta := le_of_lt S.eta_pos
   have hyoung_scaled := mul_le_mul_of_nonneg_left hyoung heta
+  have hyoung_scaled' :
+      S.eta * S.H * S.stepNorm ≤
+        S.eta * S.mu / 2 * S.stepNorm ^ 2
+          + S.eta / (2 * S.mu) * S.H ^ 2 := by
+    calc
+      S.eta * S.H * S.stepNorm
+          = S.eta * (S.H * S.stepNorm) := by ring
+      _ ≤ S.eta *
+          (S.mu / 2 * S.stepNorm ^ 2
+            + 1 / (2 * S.mu) * S.H ^ 2) := hyoung_scaled
+      _ = S.eta * S.mu / 2 * S.stepNorm ^ 2
+          + S.eta / (2 * S.mu) * S.H ^ 2 := by ring
   have hA : 0 ≤ S.Aeta := S.parameters.Aeta_nonneg
   have hstep_scaled := mul_le_mul_of_nonneg_left S.step_sq_bound hA
   have htwoA : 0 ≤ 2 * S.Aeta := mul_nonneg (by norm_num) hA
@@ -103,16 +114,55 @@ theorem CertifiedResidualDriftScalar.certified_drift
         + S.Aeta * S.stepNorm ^ 2
         + S.eta / (2 * S.mu) * S.H ^ 2
         + S.d := by
-    dsimp [CertifiedResidualDriftScalar.Aeta,
-      CertifiedResidualDriftScalar.parameters, DriftParameterization.Aeta]
-    nlinarith [S.raw_drift, hyoung_scaled]
-  dsimp [CertifiedResidualDriftScalar.Aeta,
-    CertifiedResidualDriftScalar.beta,
-    CertifiedResidualDriftScalar.parameters,
-    DriftParameterization.Aeta, DriftParameterization.beta] at hpre hstep_scaled
-      herror_scaled ⊢
-  rw [S.Hsq_eq] at hpre
-  nlinarith [hpre, hstep_scaled, herror_scaled]
+    calc
+      S.Rnext ≤ S.Q
+          + S.eta * S.H * S.stepNorm
+          + S.LR * S.eta ^ 2 / 2 * S.stepNorm ^ 2
+          + S.d := S.raw_drift
+      _ ≤ S.Q
+          + (S.eta * S.mu / 2 * S.stepNorm ^ 2
+            + S.eta / (2 * S.mu) * S.H ^ 2)
+          + S.LR * S.eta ^ 2 / 2 * S.stepNorm ^ 2
+          + S.d := by linarith [hyoung_scaled']
+      _ = S.Q
+          + S.Aeta * S.stepNorm ^ 2
+          + S.eta / (2 * S.mu) * S.H ^ 2
+          + S.d := by
+            dsimp [CertifiedResidualDriftScalar.Aeta,
+              CertifiedResidualDriftScalar.parameters,
+              DriftParameterization.Aeta]
+            ring
+  have hstep_result :
+      S.Rnext ≤ S.Q
+        + 2 * S.Aeta * S.Gsq
+        + 2 * S.Aeta * S.Esq
+        + S.eta / (2 * S.mu) * S.H ^ 2
+        + S.d := by
+    nlinarith [hpre, hstep_scaled]
+  have herror_result :
+      S.Rnext ≤ S.Q
+        + 2 * S.Aeta * S.Gsq
+        + 2 * S.Aeta * (S.lam ^ 2 * (S.CR * S.Q + S.b - S.Gamma))
+        + S.eta / (2 * S.mu) * S.H ^ 2
+        + S.d := by
+    nlinarith [hstep_result, herror_scaled]
+  rw [S.Hsq_eq] at herror_result
+  calc
+    S.Rnext ≤ S.Q
+        + 2 * S.Aeta * S.Gsq
+        + 2 * S.Aeta * (S.lam ^ 2 * (S.CR * S.Q + S.b - S.Gamma))
+        + S.eta / (2 * S.mu) * (S.CR * S.Q + S.b)
+        + S.d := herror_result
+    _ = (1 + S.CR * S.beta) * S.Q
+        + 2 * S.Aeta * S.Gsq
+        + S.beta * S.b
+        - 2 * S.Aeta * S.lam ^ 2 * S.Gamma
+        + S.d := by
+          dsimp [CertifiedResidualDriftScalar.Aeta,
+            CertifiedResidualDriftScalar.beta,
+            CertifiedResidualDriftScalar.parameters,
+            DriftParameterization.Aeta, DriftParameterization.beta]
+          ring
 
 /-- Zero-gain specialization used by the fallback-safe theorem. -/
 structure SafeResidualDriftScalar where
@@ -190,7 +240,10 @@ theorem SafeResidualDriftScalar.drift
         + 2 * S.Aeta * S.Gsq
         + S.beta * S.b
         + S.d := by
-  simpa [SafeResidualDriftScalar.Aeta, SafeResidualDriftScalar.beta] using
+  simpa [SafeResidualDriftScalar.Aeta, SafeResidualDriftScalar.beta,
+    SafeResidualDriftScalar.toCertified, CertifiedResidualDriftScalar.Aeta,
+    CertifiedResidualDriftScalar.beta, CertifiedResidualDriftScalar.parameters,
+    DriftParameterization.Aeta, DriftParameterization.beta] using
     S.toCertified.certified_drift
 
 end
