@@ -46,13 +46,16 @@ problem.
 
 ## Build
 
-Install `elan`, then run:
+Install `elan`, then use the committed `lean-toolchain` and
+`lake-manifest.json`:
 
 ```bash
-lake update
 lake exe cache get
 lake build
 ```
+
+Run `lake update` only when intentionally refreshing and committing the locked
+dependency graph.
 
 To reject placeholder proofs, run:
 
