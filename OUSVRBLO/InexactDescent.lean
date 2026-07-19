@@ -2,7 +2,7 @@ import Mathlib
 
 namespace OUSVRBLO
 
-open scoped RealInnerProductSpace
+open scoped InnerProductSpace
 
 noncomputable section
 
