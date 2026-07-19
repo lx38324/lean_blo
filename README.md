@@ -1,30 +1,48 @@
 # OUSVR-BLO Lean formalization
 
-This repository is a Lean 4 / Mathlib project for formalizing the proof
-skeleton of the revised OUSVR-BLO online value-anchor theorem.
+This repository formalizes the certificate-sensitive proof skeleton of a
+safeguarded online value-anchor theorem for fixed-penalty value-function BLO.
+The primary checked claim is finite-horizon stationarity of a restricted/local
+value surrogate under explicit analytic interfaces.
 
-## Verification phases
+## Primary checked chain
 
-The project is organized into three Lean verification phases:
+1. A safe base response and an accepted online response generate a common
+   residual envelope `Q`.
+2. Calibrated proxy comparison generates a nonnegative uncertainty-adjusted
+   gain `Gamma`.
+3. The single small-step condition `CR * beta ≤ theta / 4` implies all final
+   Lyapunov coefficient bounds.
+4. One-step descent and residual drift telescope to finite-horizon stationarity,
+   residual, and certified-gain budgets.
 
-1. Core theorem verification: one-step safety Lyapunov descent, finite-horizon
-   budget summation, averaged stationarity bound, and averaged residual bound.
-2. Whole-proof verification: upper-gradient improvement, corrected `Czeta`, and
-   the proxy certificate that yields the enhanced `R2+` interface.
-3. Detailed verification: sufficient-condition lemmas for selected analytic
-   interfaces, including scalar smooth descent, residual-to-gradient conversion,
-   and local regularized surrogate/value-response abstractions.
+The exact enhanced budget contains
 
-The first two phases validate the main manuscript proof structure under explicit
-interface hypotheses. The third phase starts to replace selected hypotheses with
-machine-checked sufficient conditions.
+```text
+(eta / 4) * sum Gsq
+  + (eta * lam^2 * CR / 4) * sum R
+  + Cgain * sum Gamma
+  <= initial Lyapunov gap + accumulated interface errors,
+```
+
+with
+
+```text
+eta * lam^2 / 2 <= Cgain <= 3/4 * eta * lam^2.
+```
 
 ## Claim boundary
 
-Lean checks the algebraic proof skeleton, coefficient flow, finite-horizon sums,
-and averaged bounds. The repository does not prove general nonconvex BLO global
-convergence, original BLO KKT convergence, or that a real LLM/LoRA training
-system automatically satisfies all analytic hypotheses.
+Lean checks the scalar coefficient accounting, safeguard closure, calibrated
+proxy algebra, finite-horizon telescoping, and averaged consequences. The
+repository does not prove that a real LLM/LoRA training system automatically
+satisfies the analytic interfaces. It also does not prove general nonconvex BLO
+global convergence, original BLO KKT convergence, or convergence of the
+iterates to a unique point.
+
+The value-response model is restricted/local: an arbitrary local response is
+not identified with the global value function of the original nonconvex lower
+problem.
 
 ## Build
 
@@ -42,16 +60,24 @@ To reject placeholder proofs, run:
 bash scripts/check_no_placeholder.sh
 ```
 
-## Files
+## Main files
 
+- `OUSVRBLO/ParameterBounds.lean`: derives the Lyapunov coefficient bounds from
+  the drift parameterization and the small-step condition.
+- `OUSVRBLO/SafeguardCertificate.lean`: closes the safe-base/accepted-response
+  rule into a common residual envelope.
+- `OUSVRBLO/ProxyCertificate.lean`: converts asymmetric proxy calibration into
+  an uncertainty-adjusted true-error gain, including fallback as zero gain.
+- `OUSVRBLO/CertifiedSafety.lean`: public fallback-safe theorem whose final
+  coefficients are derived rather than assumed.
+- `OUSVRBLO/CertifiedGainDescent.lean`: exact and simplified certified-gain
+  Lyapunov budgets and averaged bounds.
+- `OUSVRBLO/SafetyDescent.lean`: reusable low-level scalar algebraic core.
+- `OUSVRBLO/ImprovementDescent.lean`: legacy nominal-improvement/error-budget
+  formulation retained for comparison.
 - `OUSVRBLO/LyapunovBudget.lean`: finite-horizon budget structures and averaged
   consequences.
-- `OUSVRBLO/SafetyDescent.lean`: one-step safety descent to cumulative budget.
-- `OUSVRBLO/ImprovementDescent.lean`: enhanced improvement descent with `Czeta`.
-- `OUSVRBLO/ProxyCertificate.lean`: proxy calibration certificate.
-- `OUSVRBLO/AnalyticInterfaces.lean`: scalar analytic sufficient-condition
-  lemmas.
-- `OUSVRBLO/LocalSurrogate.lean`: local surrogate and value-response interfaces.
+- `OUSVRBLO/LocalSurrogate.lean`: restricted minimizer and value-gradient
+  interface boundary.
+- `docs/OUSVR_BLO_CERTIFIED_THEORY.md`: revised theorem statement and proof map.
 - `docs/FORMALIZATION_SCOPE.md`: manuscript-to-Lean coverage boundary.
-- `docs/LEAN_VERIFICATION_PHASES.md`: Chinese phase explanation and acceptance
-  criteria.
