@@ -117,7 +117,8 @@ theorem CertifiedSafetySystem.one_step_lyapunov
   simpa [CertifiedSafetySystem.Psi, CertifiedSafetySystem.Ceps,
     CertifiedSafetySystem.Cb, CertifiedSafetySystem.Cd,
     CertifiedSafetySystem.toStepSystem, SafetyStepSystem.Psi,
-    SafetyStepSystem.Ceps, SafetyStepSystem.Cb, SafetyStepSystem.Cd] using
+    SafetyStepSystem.Ceps, SafetyStepSystem.Cb, SafetyStepSystem.Cd,
+    SafetyParameters.Ceps, SafetyParameters.Cb, SafetyParameters.Cd] using
     SafetyStepSystem.one_step_lyapunov S.toStepSystem t
 
 theorem CertifiedSafetySystem.cumulative_budget_to_time
@@ -131,7 +132,8 @@ theorem CertifiedSafetySystem.cumulative_budget_to_time
   simpa [CertifiedSafetySystem.Psi, CertifiedSafetySystem.Ceps,
     CertifiedSafetySystem.Cb, CertifiedSafetySystem.Cd,
     CertifiedSafetySystem.toStepSystem, SafetyStepSystem.Psi,
-    SafetyStepSystem.Ceps, SafetyStepSystem.Cb, SafetyStepSystem.Cd] using
+    SafetyStepSystem.Ceps, SafetyStepSystem.Cb, SafetyStepSystem.Cd,
+    SafetyParameters.Ceps, SafetyParameters.Cb, SafetyParameters.Cd] using
     SafetyStepSystem.cumulative_budget_to_time S.toStepSystem T
 
 /-- Finite-horizon fallback-safe stationarity and residual budget. -/
@@ -146,7 +148,8 @@ theorem CertifiedSafetySystem.cumulative_budget
   simpa [CertifiedSafetySystem.Psi, CertifiedSafetySystem.Ceps,
     CertifiedSafetySystem.Cb, CertifiedSafetySystem.Cd,
     CertifiedSafetySystem.toStepSystem, SafetyStepSystem.Psi,
-    SafetyStepSystem.Ceps, SafetyStepSystem.Cb, SafetyStepSystem.Cd] using
+    SafetyStepSystem.Ceps, SafetyStepSystem.Cb, SafetyStepSystem.Cd,
+    SafetyParameters.Ceps, SafetyParameters.Cb, SafetyParameters.Cd] using
     SafetyStepSystem.cumulative_budget S.toStepSystem T
 
 def CertifiedSafetySystem.toBudget
@@ -163,7 +166,8 @@ theorem CertifiedSafetySystem.gradient_average_bound
   simpa [CertifiedSafetySystem.Psi, CertifiedSafetySystem.Ceps,
     CertifiedSafetySystem.Cb, CertifiedSafetySystem.Cd,
     CertifiedSafetySystem.toStepSystem, SafetyStepSystem.Psi,
-    SafetyStepSystem.Ceps, SafetyStepSystem.Cb, SafetyStepSystem.Cd] using
+    SafetyStepSystem.Ceps, SafetyStepSystem.Cb, SafetyStepSystem.Cd,
+    SafetyParameters.Ceps, SafetyParameters.Cb, SafetyParameters.Cd] using
     SafetyStepSystem.gradient_average_bound S.toStepSystem hT
 
 theorem CertifiedSafetySystem.residual_average_bound
@@ -180,7 +184,8 @@ theorem CertifiedSafetySystem.residual_average_bound
   simpa [CertifiedSafetySystem.Psi, CertifiedSafetySystem.Ceps,
     CertifiedSafetySystem.Cb, CertifiedSafetySystem.Cd,
     CertifiedSafetySystem.toStepSystem, SafetyStepSystem.Psi,
-    SafetyStepSystem.Ceps, SafetyStepSystem.Cb, SafetyStepSystem.Cd] using
+    SafetyStepSystem.Ceps, SafetyStepSystem.Cb, SafetyStepSystem.Cd,
+    SafetyParameters.Ceps, SafetyParameters.Cb, SafetyParameters.Cd] using
     SafetyStepSystem.residual_average_bound S.toStepSystem hT
 
 end
