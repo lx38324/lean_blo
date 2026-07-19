@@ -73,8 +73,8 @@ theorem ManuscriptDriftParameters.parameterization_beta
     ManuscriptDriftParameters.mu, ManuscriptDriftParameters.Aeta,
     ManuscriptDriftParameters.betaEta]
   field_simp [sqrtTwo_ne_zero, ne_of_gt M.lam_pos]
-  conv_rhs => rw [sqrtTwo_sq]
-  ring
+  ring_nf
+  rw [sqrtTwo_sq]
 
 /-- Direct constructor from the manuscript small-step condition
 `C_R * beta_eta ≤ theta / 4` to the public parameter package. -/
