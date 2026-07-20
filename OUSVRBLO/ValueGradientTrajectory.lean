@@ -137,11 +137,13 @@ def ValueGradientTrajectorySystem.toTrajectorySystem
   projectX_contract := S.projectX_contract
   residual_smooth_step_online := by
     intro t
-    simpa [ValueGradientProposalData.selector] using
+    simpa [ValueGradientProposalData.selector,
+      ValueGradientProposalData.toCertifiedProposalData] using
       S.residual_smooth_step_online t
   residual_grad_sq_bound := by
     intro t
-    simpa [ValueGradientProposalData.selector] using
+    simpa [ValueGradientProposalData.selector,
+      ValueGradientProposalData.toCertifiedProposalData] using
       S.residual_grad_sq_bound t
 
 /-- Public scalar system generated from actual value-gradient vectors. -/
