@@ -42,9 +42,12 @@ theorem RestrictedValueResponseInterface.eq_response_of_quadratic_growth
     exact mul_nonneg (le_of_lt hmodulus) (sq_nonneg _)
   have hprod_zero : modulus * dist xi (S.response x) ^ 2 = 0 := by
     nlinarith
-  have hdist_nonneg : 0 ≤ dist xi (S.response x) := dist_nonneg
+  have hdist_sq_zero : dist xi (S.response x) ^ 2 = 0 := by
+    rcases mul_eq_zero.mp hprod_zero with hmod_zero | hdist_zero
+    · exact False.elim ((ne_of_gt hmodulus) hmod_zero)
+    · exact hdist_zero
   have hdist_zero : dist xi (S.response x) = 0 := by
-    nlinarith [sq_nonneg (dist xi (S.response x))]
+    exact sq_eq_zero_iff.mp hdist_sq_zero
   exact dist_eq_zero.mp hdist_zero
 
 /--
