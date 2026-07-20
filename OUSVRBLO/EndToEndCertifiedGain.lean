@@ -179,7 +179,9 @@ theorem EndToEndCertifiedGainSystem.cumulative_budget
         + S.toCertifiedGainStepSystem.Ceps * SeqSum T S.safeguard.eps
         + S.toCertifiedGainStepSystem.Cb * SeqSum T S.b
         + S.toCertifiedGainStepSystem.Cd * SeqSum T S.d := by
-  simpa [EndToEndCertifiedGainSystem.toCertifiedGainStepSystem] using
+  simpa [EndToEndCertifiedGainSystem.toCertifiedGainStepSystem,
+    EndToEndCertifiedGainSystem.toSmoothResidualAnalyticGainSystem,
+    SmoothResidualAnalyticGainSystem.toAnalyticGainSystem] using
     S.toSmoothResidualAnalyticGainSystem.cumulative_budget T
 
 /-- Conventional version using the checked lower gain coefficient
@@ -198,7 +200,9 @@ theorem EndToEndCertifiedGainSystem.cumulative_budget_simple
         + S.toCertifiedGainStepSystem.Ceps * SeqSum T S.safeguard.eps
         + S.toCertifiedGainStepSystem.Cb * SeqSum T S.b
         + S.toCertifiedGainStepSystem.Cd * SeqSum T S.d := by
-  simpa [EndToEndCertifiedGainSystem.toCertifiedGainStepSystem] using
+  simpa [EndToEndCertifiedGainSystem.toCertifiedGainStepSystem,
+    EndToEndCertifiedGainSystem.toSmoothResidualAnalyticGainSystem,
+    SmoothResidualAnalyticGainSystem.toAnalyticGainSystem] using
     S.toSmoothResidualAnalyticGainSystem.toAnalyticGainSystem.cumulative_budget_simple T
 
 end
