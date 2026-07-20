@@ -10,13 +10,12 @@ noncomputable section
 
 /-- The uniform expectation over `Finset.range T` is the arithmetic average used
 throughout the finite-horizon theorem statements. -/
-theorem range_expect_eq_seq_average {T : ℕ} (hT : 0 < T)
-    (a : ℕ → ℝ) :
+theorem range_expect_eq_seq_average {T : ℕ} (a : ℕ → ℝ) :
     Finset.expect (Finset.range T) a =
       (1 / (T : ℝ)) * SeqSum T a := by
   simp only [Finset.expect, Finset.card_range, SeqSum]
   rw [← NNRat.cast_smul_eq_nnqsmul ℝ]
-  simp [smul_eq_mul, div_eq_mul_inv, Nat.ne_of_gt hT]
+  simp [smul_eq_mul, div_eq_mul_inv]
 
 /-- Every nonempty finite horizon contains an iterate no larger than the
 arithmetic average. -/
@@ -30,7 +29,7 @@ theorem exists_le_seq_average {T : ℕ} (hT : 0 < T)
     exact Finset.exists_le_of_expect_le hrange le_rfl
   rcases hexpect with ⟨t, ht, hle⟩
   refine ⟨t, Finset.mem_range.mp ht, ?_⟩
-  rw [range_expect_eq_seq_average hT a] at hle
+  rw [range_expect_eq_seq_average a] at hle
   exact hle
 
 /-- A reusable best-iterate principle: an averaged upper bound yields one
