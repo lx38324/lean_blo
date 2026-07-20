@@ -38,6 +38,8 @@ theorem proxy_squared_error_calibrated_of_gradient_bounds
   have hproxyRev : ‖gValue - gProxy‖ ≤ delta := by
     simpa [norm_sub_rev] using hproxy
   have hproxyForward : ‖gProxy - gValue‖ ≤ delta := hproxy
+  have hv_bound : v ≤ B := by
+    simpa [v] using hcandidate
   have hu_le_v_add : u ≤ v + delta := by
     calc
       u = ‖(gCandidate - gValue) + (gValue - gProxy)‖ := by
@@ -62,12 +64,9 @@ theorem proxy_squared_error_calibrated_of_gradient_bounds
     apply abs_le.mpr
     constructor <;> linarith
   have hu_bound : u ≤ B + delta := by
-    calc
-      u ≤ v + delta := hu_le_v_add
-      _ ≤ B + delta := add_le_add_right hcandidate delta
+    linarith [hu_le_v_add, hv_bound]
   have hsum : u + v ≤ 2 * B + delta := by
-    dsimp [v] at hcandidate
-    linarith
+    linarith [hu_bound, hv_bound]
   have hsum_nonneg : 0 ≤ u + v :=
     add_nonneg (norm_nonneg _) (norm_nonneg _)
   have hprod := mul_le_mul habs hsum hsum_nonneg hdelta
