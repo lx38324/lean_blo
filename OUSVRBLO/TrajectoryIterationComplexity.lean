@@ -57,9 +57,9 @@ theorem TrajectoryCertifiedProposalGainSystem.exists_joint_certificate_le_tolera
       + S.toCertifiedGainStepSystem.lam ^ 2 *
           S.toCertifiedGainStepSystem.CR *
           S.toCertifiedGainStepSystem.R t ≤ tolerance
-  exact S.toCertifiedGainStepSystem.
+  exact CertifiedGainStepSystem.
     exists_joint_certificate_le_tolerance_of_summable
-      heps hb hd hT horizon
+      S.toCertifiedGainStepSystem heps hb hd hT horizon
 
 /-- Component form: the same trajectory iterate has both small stationarity and
 small response residual. -/
@@ -84,9 +84,9 @@ theorem TrajectoryCertifiedProposalGainSystem.exists_stationarity_and_scaled_res
     S.toCertifiedGainStepSystem.R t ≤ tolerance /
       (S.toCertifiedGainStepSystem.lam ^ 2 *
         S.toCertifiedGainStepSystem.CR)
-  exact S.toCertifiedGainStepSystem.
+  exact CertifiedGainStepSystem.
     exists_stationarity_and_scaled_residual_le_of_summable
-      heps hb hd hT horizon
+      S.toCertifiedGainStepSystem heps hb hd hT horizon
 
 end
 
