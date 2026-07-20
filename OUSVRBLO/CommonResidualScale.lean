@@ -35,6 +35,23 @@ theorem two_affine_residual_scale_sequences_le_common_max
   two_affine_residual_scales_le_common_max
     (Q t) C₁ C₂ (b₁ t) (b₂ t) (hQ t)
 
+/-- The pointwise maximum of two nonnegative summable bias sequences remains
+summable, so the common-scale reduction is compatible with the asymptotic
+summable-error assumptions. -/
+theorem summable_max_of_nonnegative
+    (b₁ b₂ : ℕ → ℝ)
+    (hb₁ : ∀ t, 0 ≤ b₁ t) (hb₂ : ∀ t, 0 ≤ b₂ t)
+    (hsum₁ : Summable b₁) (hsum₂ : Summable b₂) :
+    Summable (fun t => max (b₁ t) (b₂ t)) := by
+  apply Summable.of_nonneg_of_le
+  · intro t
+    exact (hb₁ t).trans (le_max_left _ _)
+  · intro t
+    apply max_le
+    · exact le_add_of_nonneg_right (hb₂ t)
+    · exact le_add_of_nonneg_left (hb₁ t)
+  · exact hsum₁.add hsum₂
+
 end
 
 end OUSVRBLO
