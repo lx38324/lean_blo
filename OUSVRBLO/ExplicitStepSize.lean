@@ -19,7 +19,7 @@ theorem ManuscriptDriftParameters.small_step_of_split
 /-- A direct bound on `eta` gives the linear half of the split condition. -/
 theorem ManuscriptDriftParameters.linear_budget_of_eta_bound
     (M : ManuscriptDriftParameters) (CR theta : ℝ)
-    (hCR : 0 < CR) (htheta : 0 < theta)
+    (hCR : 0 < CR)
     (heta :
       M.eta ≤ theta / (8 * CR * sqrtTwo * M.lam)) :
     CR * (sqrtTwo * M.lam * M.eta) ≤ theta / 8 := by
@@ -30,7 +30,7 @@ theorem ManuscriptDriftParameters.linear_budget_of_eta_bound
 /-- A direct bound on `eta^2` gives the quadratic half when `L_R > 0`. -/
 theorem ManuscriptDriftParameters.quadratic_budget_of_eta_sq_bound
     (M : ManuscriptDriftParameters) (CR theta : ℝ)
-    (hCR : 0 < CR) (htheta : 0 < theta) (hLR : 0 < M.LR)
+    (hCR : 0 < CR) (hLR : 0 < M.LR)
     (hetaSq :
       M.eta ^ 2 ≤
         theta / (8 * CR * M.lam ^ 2 * M.LR)) :
