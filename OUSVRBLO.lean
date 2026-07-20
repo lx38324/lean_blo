@@ -13,6 +13,7 @@ import OUSVRBLO.ProxyCertificate
 import OUSVRBLO.ProxySequenceCertificate
 import OUSVRBLO.AcceptedResponseSelector
 import OUSVRBLO.CertifiedProposalAcceptance
+import OUSVRBLO.ValueGradientErrorEmbedding
 import OUSVRBLO.CertifiedGainDescent
 import OUSVRBLO.FiniteTimeCorollaries
 import OUSVRBLO.Asymptotics
@@ -28,8 +29,10 @@ import OUSVRBLO.EndToEndCertifiedGain
 import OUSVRBLO.SelectedEndToEndCertifiedGain
 import OUSVRBLO.CanonicalSelectedEndToEndCertifiedGain
 import OUSVRBLO.TrajectoryCertifiedProposalGain
+import OUSVRBLO.ValueGradientTrajectory
 import OUSVRBLO.EndToEndCorollaries
 import OUSVRBLO.TrajectoryCertifiedProposalCorollaries
+import OUSVRBLO.TrajectoryIterationComplexity
 import OUSVRBLO.AnalyticPointwise
 import OUSVRBLO.AnalyticInterfaces
 import OUSVRBLO.LocalSurrogate
