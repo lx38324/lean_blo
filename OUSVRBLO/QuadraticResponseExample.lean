@@ -66,7 +66,8 @@ theorem unique_minimizer (k x xi : ℝ)
   have hresp_mem :
       response k x ∈
         (valueGradientInterface k).toRestrictedValueResponseInterface.feasible x := by
-    simp [valueGradientInterface]
+    change response k x ∈ Set.univ
+    exact Set.mem_univ _
   have hmin := hxi.2 (response k x) hresp_mem
   change h k x xi ≤ h k x (response k x) at hmin
   have hsquare : (xi - k * x) ^ 2 = 0 := by
