@@ -10,5 +10,6 @@ import OUSVRBLO.CertifiedSafety
 import OUSVRBLO.ImprovementDescent
 import OUSVRBLO.ProxyCertificate
 import OUSVRBLO.CertifiedGainDescent
+import OUSVRBLO.FiniteTimeCorollaries
 import OUSVRBLO.AnalyticInterfaces
 import OUSVRBLO.LocalSurrogate
