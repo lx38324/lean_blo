@@ -45,14 +45,14 @@ theorem hasGradientAt_fixedPenaltyObjective
     Pi.sub_apply, Pi.smul_apply, smul_eq_mul] using hsum
 
 /--
-Certificate that the objective and gradient sequence in the trajectory theorem
-come from an explicit fixed-penalty decomposition.
+Data certifying that the objective and gradient sequence in the trajectory
+ theorem come from an explicit fixed-penalty decomposition.
 -/
 structure FixedPenaltyTrajectoryGradientCertificate
     {E X : Type*}
     [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
     [NormedAddCommGroup X] [InnerProductSpace ℝ X]
-    (S : TrajectoryCertifiedProposalGainSystem E X) : Prop where
+    (S : TrajectoryCertifiedProposalGainSystem E X) where
   outer : E → ℝ
   lower : E → ℝ
   value : E → ℝ
