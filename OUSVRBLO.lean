@@ -2,6 +2,7 @@ import OUSVRBLO.ScalarFacts
 import OUSVRBLO.LyapunovBudget
 import OUSVRBLO.ParameterBounds
 import OUSVRBLO.ManuscriptParameters
+import OUSVRBLO.ExplicitStepSize
 import OUSVRBLO.SafeguardCertificate
 import OUSVRBLO.CommonResidualScale
 import OUSVRBLO.InexactDescent
