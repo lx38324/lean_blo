@@ -11,7 +11,7 @@ value surrogate under explicit analytic interfaces.
 restricted minimizer + differentiable stationary response branch
   => local value derivative equals the x-partial derivative
 
-quadratic growth or strong monotonicity
+quadratic growth, strong monotonicity, or a contractive response map
   => unique represented response + response-distance error bound
 
 response-gradient Lipschitzness
@@ -69,21 +69,23 @@ betaEta = sqrt 2 * lam * eta + lam^2 * LR * eta^2.
 
 Lean checks coefficient accounting, restricted-response uniqueness under stated
 local certificates, the differentiable branch-envelope identity,
-residual-to-value-gradient sufficient conditions, proximal strong-monotonicity
-accounting, residual safeguard closure, calibrated proxy algebra,
-Hilbert-space inexact-descent algebra, scalar residual-drift propagation,
-finite-horizon telescoping, averaged and best-iterate corollaries, and explicit
-rates under uniformly bounded or summable perturbation budgets.
+residual-to-value-gradient sufficient conditions, strong-monotonicity,
+proximal, and contraction-residual accounting, residual safeguard closure,
+calibrated proxy algebra, Hilbert-space inexact-descent algebra, scalar
+residual-drift propagation, finite-horizon telescoping, averaged and
+best-iterate corollaries, and explicit rates under uniformly bounded or
+summable perturbation budgets.
 
 The repository does not prove that a real LLM/LoRA training system automatically
-satisfies the local smoothness, hypomonotonicity, response differentiability, or
-raw residual-compatibility premises. It also does not prove general nonconvex
-BLO global convergence, original BLO KKT convergence, projected/stochastic
-training correctness, or convergence of the iterates to a unique point.
+satisfies the local smoothness, hypomonotonicity, contraction, response
+differentiability, or raw residual-compatibility premises. It also does not
+prove general nonconvex BLO global convergence, original BLO KKT convergence,
+projected/stochastic training correctness, or convergence of the iterates to a
+unique point.
 
 The value-response model is restricted/local: an arbitrary local response is
 not identified with the global value function of the original nonconvex lower
-problem.  The local branch-envelope result is not a general nonsmooth or
+problem. The local branch-envelope result is not a general nonsmooth or
 set-valued Danskin theorem.
 
 ## Build
@@ -140,6 +142,8 @@ bash scripts/check_no_placeholder.sh
   bounds and response uniqueness from strong monotonicity.
 - `OUSVRBLO/ProximalResponseCertificate.lean`: proximal regularization dominates
   local negative curvature and produces a computable R2 residual certificate.
+- `OUSVRBLO/ContractionResidualCertificate.lean`: contractive fixed-point or
+  projected-response residual gives response-distance and R2 certificates.
 - `OUSVRBLO/QuadraticResponseExample.lean`: concrete scalar model showing the
   restricted response and R2 assumptions are jointly satisfiable.
 - `OUSVRBLO/SafetyDescent.lean`: reusable low-level scalar algebraic core.
