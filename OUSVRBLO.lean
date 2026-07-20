@@ -17,3 +17,4 @@ import OUSVRBLO.AnalyticClosure
 import OUSVRBLO.AnalyticGainClosure
 import OUSVRBLO.AnalyticInterfaces
 import OUSVRBLO.LocalSurrogate
+import OUSVRBLO.RestrictedEnvelope
