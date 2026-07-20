@@ -18,8 +18,9 @@ theorem CertifiedSafetySystem.joint_average_eq
     (1 / (T : ℝ)) * SeqSum T S.jointMeasure =
       (1 / (T : ℝ)) * SeqSum T S.Gsq
         + S.lam ^ 2 * S.CR * ((1 / (T : ℝ)) * SeqSum T S.R) := by
-  simp [CertifiedSafetySystem.jointMeasure, SeqSum,
-    Finset.sum_add_distrib, Finset.mul_sum]
+  simp only [CertifiedSafetySystem.jointMeasure, SeqSum,
+    Finset.sum_add_distrib]
+  rw [← Finset.mul_sum]
   ring
 
 /-- Finite-horizon joint stationarity and response-residual average bound. -/
@@ -46,7 +47,6 @@ theorem CertifiedSafetySystem.joint_average_bound
             ((S.eta / 4) * SeqSum T S.Gsq
               + (S.eta * S.lam ^ 2 * S.CR / 4) * SeqSum T S.R) := by
                 field_simp [ne_of_gt S.eta_pos, ne_of_gt hTreal]
-                ring
     _ ≤ (4 / (S.eta * (T : ℝ))) * S.accumulatedRhs T := hscaled
     _ = 4 * S.accumulatedRhs T / (S.eta * (T : ℝ)) := by ring
 
@@ -77,11 +77,12 @@ theorem CertifiedSafetySystem.exists_joint_certificate_of_summable
     have hscale : 0 ≤ 4 / (S.eta * (T : ℝ)) :=
       le_of_lt (div_pos (by norm_num) hden_pos)
     have hscaled := mul_le_mul_of_nonneg_left hRhs hscale
-    nlinarith
+    exact hbase.trans (by
+      simpa [div_eq_mul_inv, mul_comm, mul_left_comm, mul_assoc] using hscaled)
   exact exists_le_of_seq_average_le hT S.jointMeasure _ havg
 
 /--
-Performance measure for the certified-gain system.  The favorable gain is not
+Performance measure for the certified-gain system. The favorable gain is not
 included because it is not an error quantity that should be made small.
 -/
 def CertifiedGainStepSystem.jointMeasure
@@ -94,8 +95,9 @@ theorem CertifiedGainStepSystem.joint_average_eq
     (1 / (T : ℝ)) * SeqSum T S.jointMeasure =
       (1 / (T : ℝ)) * SeqSum T S.Gsq
         + S.lam ^ 2 * S.CR * ((1 / (T : ℝ)) * SeqSum T S.R) := by
-  simp [CertifiedGainStepSystem.jointMeasure, SeqSum,
-    Finset.sum_add_distrib, Finset.mul_sum]
+  simp only [CertifiedGainStepSystem.jointMeasure, SeqSum,
+    Finset.sum_add_distrib]
+  rw [← Finset.mul_sum]
   ring
 
 /--
@@ -140,7 +142,6 @@ theorem CertifiedGainStepSystem.joint_average_bound
             ((S.eta / 4) * SeqSum T S.Gsq
               + (S.eta * S.lam ^ 2 * S.CR / 4) * SeqSum T S.R) := by
                 field_simp [ne_of_gt S.eta_pos, ne_of_gt hTreal]
-                ring
     _ ≤ (4 / (S.eta * (T : ℝ))) * S.accumulatedRhs T := hscaled
     _ = 4 * S.accumulatedRhs T / (S.eta * (T : ℝ)) := by ring
 
@@ -171,7 +172,8 @@ theorem CertifiedGainStepSystem.exists_joint_certificate_of_summable
     have hscale : 0 ≤ 4 / (S.eta * (T : ℝ)) :=
       le_of_lt (div_pos (by norm_num) hden_pos)
     have hscaled := mul_le_mul_of_nonneg_left hRhs hscale
-    nlinarith
+    exact hbase.trans (by
+      simpa [div_eq_mul_inv, mul_comm, mul_left_comm, mul_assoc] using hscaled)
   exact exists_le_of_seq_average_le hT S.jointMeasure _ havg
 
 /-- Exact gain-aware Lyapunov budget density, kept for accounting rather than as
@@ -203,8 +205,9 @@ theorem CertifiedGainStepSystem.budgetDensity_average_bound
         (1 / (T : ℝ)) * SeqSum T S.Gsq
           + 2 * S.lam ^ 2 * ((1 / (T : ℝ)) * SeqSum T S.Gamma)
           + S.lam ^ 2 * S.CR * ((1 / (T : ℝ)) * SeqSum T S.R) := by
-    simp [CertifiedGainStepSystem.budgetDensity, SeqSum,
-      Finset.sum_add_distrib, Finset.mul_sum]
+    simp only [CertifiedGainStepSystem.budgetDensity, SeqSum,
+      Finset.sum_add_distrib]
+    rw [← Finset.mul_sum, ← Finset.mul_sum]
     ring
   rw [hdensity]
   calc
@@ -216,7 +219,6 @@ theorem CertifiedGainStepSystem.budgetDensity_average_bound
               + (S.eta * S.lam ^ 2 / 2) * SeqSum T S.Gamma
               + (S.eta * S.lam ^ 2 * S.CR / 4) * SeqSum T S.R) := by
                 field_simp [ne_of_gt S.eta_pos, ne_of_gt hTreal]
-                ring
     _ ≤ (4 / (S.eta * (T : ℝ))) * S.accumulatedRhs T := hscaled
     _ = 4 * S.accumulatedRhs T / (S.eta * (T : ℝ)) := by ring
 
