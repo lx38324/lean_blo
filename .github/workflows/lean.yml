@@ -34,6 +34,9 @@ jobs:
       - name: Documentation theorem sanity check
         if: always()
         run: python3 scripts/check_docs_sanity.py
+      - name: Lean build-log diagnostic scan
+        if: always()
+        run: python3 scripts/check_lean_build_log.py
       - name: Report Lean build failure
         if: steps.lean_build.outcome == 'failure'
         run: |
