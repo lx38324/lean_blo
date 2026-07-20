@@ -7,12 +7,15 @@ noncomputable section
 /--
 Proposal data before the accept/fallback decision is made.
 
-The Boolean decision is computed from three certificate tests:
+The Boolean decision is defined from three certificate tests:
 
 1. proposal residual is no larger than the base residual plus tolerance;
 2. proposal proxy error improves over the baseline by the advertised margin;
 3. the margin remains nonnegative after subtracting proxy tolerance and both
    calibration radii.
+
+Because the data are real-valued, this is a proof-level selector inside a
+`noncomputable` section; no extracted floating-point implementation is claimed.
 -/
 structure CertifiedProposalData where
   theta : ℝ
@@ -30,6 +33,9 @@ structure CertifiedProposalData where
   rhoB : ℕ → ℝ
   rhoProp : ℕ → ℝ
   Rbase_nonneg : ∀ t, 0 ≤ Rbase t
+  Rprop_nonneg : ∀ t, 0 ≤ Rprop t
+  eB_nonneg : ∀ t, 0 ≤ eB t
+  eProp_nonneg : ∀ t, 0 ≤ eProp t
   epsBase_nonneg : ∀ t, 0 ≤ epsBase t
   tauR_nonneg : ∀ t, 0 ≤ tauR t
   rhoB_nonneg : ∀ t, 0 ≤ rhoB t
@@ -42,14 +48,14 @@ structure CertifiedProposalData where
   baseline_calib_abs :
     ∀ t, |ehatB t - eB t| ≤ rhoB t
 
-/-- Conjunction of the three computable acceptance certificates. -/
+/-- Conjunction of the three acceptance certificates. -/
 def CertifiedProposalData.AcceptanceCondition
     (S : CertifiedProposalData) (t : ℕ) : Prop :=
   S.Rprop t ≤ S.Rbase t + S.tauR t ∧
   S.ehatProp t ≤ S.ehatB t - S.DeltaHat t + S.tauE t ∧
   0 ≤ S.DeltaHat t - S.tauE t - S.rhoProp t - S.rhoB t
 
-/-- The actual accept/fallback decision generated from the certificates. -/
+/-- Proof-level accept/fallback Boolean generated from the certificates. -/
 def CertifiedProposalData.accept
     (S : CertifiedProposalData) (t : ℕ) : Bool := by
   classical
@@ -88,6 +94,9 @@ def CertifiedProposalData.toAcceptedResponseSelector
   rhoProp := S.rhoProp
   accept := S.accept
   Rbase_nonneg := S.Rbase_nonneg
+  Rprop_nonneg := S.Rprop_nonneg
+  eB_nonneg := S.eB_nonneg
+  eProp_nonneg := S.eProp_nonneg
   epsBase_nonneg := S.epsBase_nonneg
   tauR_nonneg := S.tauR_nonneg
   rhoB_nonneg := S.rhoB_nonneg
