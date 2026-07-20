@@ -60,13 +60,17 @@ theorem CertifiedSafetySystem.exists_stationarity_and_scaled_residual_le_of_summ
   obtain ⟨t, ht, hjoint⟩ :=
     S.exists_joint_certificate_le_tolerance_of_summable
       heps hb hd hT horizon
-  have hresTerm : 0 ≤ S.lam ^ 2 * S.CR * S.R t := by positivity
+  have hlamSq : 0 < S.lam ^ 2 := by
+    simpa [pow_two] using mul_pos S.lam_pos S.lam_pos
+  have hcoef : 0 < S.lam ^ 2 * S.CR :=
+    mul_pos hlamSq S.CR_pos
+  have hresTerm : 0 ≤ S.lam ^ 2 * S.CR * S.R t :=
+    mul_nonneg hcoef.le (S.R_nonneg t)
   have hG : S.Gsq t ≤ tolerance :=
     (le_add_of_nonneg_right hresTerm).trans hjoint
   have hgradTerm : 0 ≤ S.Gsq t := S.Gsq_nonneg t
   have hscaled : S.lam ^ 2 * S.CR * S.R t ≤ tolerance := by
     nlinarith
-  have hcoef : 0 < S.lam ^ 2 * S.CR := by positivity
   have hR : S.R t ≤ tolerance / (S.lam ^ 2 * S.CR) := by
     apply (le_div_iff₀ hcoef).2
     simpa [mul_comm, mul_left_comm, mul_assoc] using hscaled
@@ -120,13 +124,17 @@ theorem CertifiedGainStepSystem.exists_stationarity_and_scaled_residual_le_of_su
   obtain ⟨t, ht, hjoint⟩ :=
     S.exists_joint_certificate_le_tolerance_of_summable
       heps hb hd hT horizon
-  have hresTerm : 0 ≤ S.lam ^ 2 * S.CR * S.R t := by positivity
+  have hlamSq : 0 < S.lam ^ 2 := by
+    simpa [pow_two] using mul_pos S.lam_pos S.lam_pos
+  have hcoef : 0 < S.lam ^ 2 * S.CR :=
+    mul_pos hlamSq S.CR_pos
+  have hresTerm : 0 ≤ S.lam ^ 2 * S.CR * S.R t :=
+    mul_nonneg hcoef.le (S.R_nonneg t)
   have hG : S.Gsq t ≤ tolerance :=
     (le_add_of_nonneg_right hresTerm).trans hjoint
   have hgradTerm : 0 ≤ S.Gsq t := S.Gsq_nonneg t
   have hscaled : S.lam ^ 2 * S.CR * S.R t ≤ tolerance := by
     nlinarith
-  have hcoef : 0 < S.lam ^ 2 * S.CR := by positivity
   have hR : S.R t ≤ tolerance / (S.lam ^ 2 * S.CR) := by
     apply (le_div_iff₀ hcoef).2
     simpa [mul_comm, mul_left_comm, mul_assoc] using hscaled
