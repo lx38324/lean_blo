@@ -80,11 +80,10 @@ theorem CertifiedGainStepSystem.joint_average_bound_of_error_floor
         ≤ 4 * S.accumulatedRhs T / (S.eta * (T : ℝ)) := hbase
     _ ≤ 4 * (S.Psi 0 - S.Pstar + (T : ℝ) * floor) /
           (S.eta * (T : ℝ)) := by
-        simpa [div_eq_mul_inv, mul_assoc] using hscaled
+        simpa [div_eq_mul_inv, mul_comm, mul_left_comm, mul_assoc] using hscaled
     _ = 4 * (S.Psi 0 - S.Pstar) / (S.eta * (T : ℝ))
           + 4 * floor / S.eta := by
         field_simp [ne_of_gt S.eta_pos, ne_of_gt hTreal]
-        ring
 
 /-- Some iterate on the same horizon satisfies the same neighborhood bound. -/
 theorem CertifiedGainStepSystem.exists_joint_certificate_of_error_floor
