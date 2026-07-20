@@ -119,7 +119,11 @@ theorem ValueGradientFixedPenaltyCertificate.update_uses_selected_gradient
           (C.gradOuter t) (C.gradLower t)
           (S.errorEmbedding (S.proposal.gradOnline t))
           S.driftParameters.lam := by
-  rw [S.update_displacement t, C.approximate_gradient_eq t]
+  rw [S.update_displacement t]
+  have h := congrArg
+    (fun v : E => -S.driftParameters.eta • v)
+    (C.approximate_gradient_eq t)
+  simpa [ValueGradientTrajectorySystem.Err] using h
 
 end
 
