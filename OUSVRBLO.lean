@@ -38,6 +38,7 @@ import OUSVRBLO.TrajectoryCertifiedProposalCorollaries
 import OUSVRBLO.TrajectoryIterationComplexity
 import OUSVRBLO.TrajectoryGradientSemantics
 import OUSVRBLO.FixedPenaltyGradientSemantics
+import OUSVRBLO.ValueGradientFixedPenaltyCoupling
 import OUSVRBLO.AnalyticPointwise
 import OUSVRBLO.AnalyticInterfaces
 import OUSVRBLO.LocalSurrogate
