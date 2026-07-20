@@ -161,7 +161,7 @@ theorem RestrictedValueProposalData.baseline_error_bound_of_proximal_common_scal
     (S.toValueGradientProposalData).eBase t ≤ CR * S.Rbase t + b t := by
   have hexact := S.baseline_error_bound_of_proximal M hRbase t
   have hscale := mul_le_mul_of_nonneg_right hCR (S.Rbase_nonneg t)
-  linarith
+  exact hexact.trans (hscale.trans (le_add_of_nonneg_right (hb t)))
 
 end
 
