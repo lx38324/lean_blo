@@ -64,6 +64,11 @@ eta * lam^2 / 2 <= Cgain <= 3/4 * eta * lam^2.
   `proximalLowerGradient_strong_monotone`,
   `proximalLowerGradient_stationary_unique`, and
   `value_gradient_error_sq_le_proximal_residual`.
+- Contractive fixed-point/projected-response residual certificate:
+  `dist_le_fixedPoint_residual_of_contraction`,
+  `dist_sq_le_fixedPoint_residual_sq_of_contraction`,
+  `eq_of_contraction_fixedPoints`, and
+  `value_gradient_error_sq_le_fixedPoint_residual`.
 - Concrete non-vacuous restricted response model:
   the `ScalarQuadraticResponse` quadratic-growth, uniqueness, exact R2, and
   certified R2 theorems.
@@ -143,6 +148,9 @@ Lean checks:
 - a quadratic proximal term dominating a local hypomonotonicity constant produces
   strong monotonicity with modulus `rho - curvature` and the corresponding R2
   constant `L^2 / (rho - curvature)^2`;
+- a contractive response map gives fixed-point uniqueness, a response-distance
+  error bound, and an R2 certificate using the computable squared fixed-point or
+  projected-response residual with constant `L^2 / (1-q)^2`;
 - a scalar quadratic model satisfies the restricted minimizer, quadratic-growth,
   and value-gradient error interfaces simultaneously;
 - the single small-step condition implies all coefficient inequalities used by
@@ -173,8 +181,8 @@ for real LLM/LoRA systems:
 
 1. local smoothness and lower boundedness of the concrete fixed-penalty
    surrogate;
-2. a trajectory region on which quadratic growth, hypomonotonicity, or strong
-   monotonicity holds with calibrated constants;
+2. a trajectory region on which quadratic growth, hypomonotonicity, strong
+   monotonicity, or contraction holds with calibrated constants;
 3. differentiability and regularity of the selected restricted response branch;
 4. a general nonsmooth or set-valued nonconvex Danskin/envelope theorem;
 5. calibration of the residual-to-value-gradient constants for a concrete
@@ -188,6 +196,6 @@ Thus the checked result remains an interface theorem. It establishes that, when
 the listed local analytic premises hold, arbitrary learned proposals can be
 embedded through a certifiable fallback without invalidating the finite-horizon
 stationarity budget, and calibrated improvements enter that budget as a true
-nonnegative gain.  The new response-certificate layer verifies several concrete
+nonnegative gain. The response-certificate layer verifies several concrete
 sufficient conditions for those interfaces without claiming global neural lower
 optimality.
