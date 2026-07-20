@@ -88,9 +88,9 @@ def AcceptedResponseSelector.safeguardSystem
     intro t
     cases hacc : S.accept t with
     | false =>
-        simp [AcceptedResponseSelector.Ronline, S.tauR_nonneg t]
+        simp [AcceptedResponseSelector.Ronline, hacc, S.tauR_nonneg t]
     | true =>
-        simpa [AcceptedResponseSelector.Ronline] using
+        simpa [AcceptedResponseSelector.Ronline, hacc] using
           S.proposal_residual_safe t hacc
 
 @[simp]
@@ -138,9 +138,9 @@ def AcceptedResponseSelector.proxySequence
     intro t
     cases hacc : S.accept t with
     | false =>
-        simp [AcceptedResponseSelector.eOnline]
+        simp [AcceptedResponseSelector.eOnline, hacc]
     | true =>
-        simpa [AcceptedResponseSelector.eOnline] using
+        simpa [AcceptedResponseSelector.eOnline, hacc] using
           S.proposal_calib_abs t
   calibB_abs := by
     intro t
@@ -182,7 +182,7 @@ theorem AcceptedResponseSelector.proxy_Gamma
     S.proxySequence.Gamma t = S.Gamma t := by
   cases hacc : S.accept t <;>
     simp [AcceptedResponseSelector.proxySequence,
-      AcceptedResponseSelector.Gamma, ProxyGainSequence.Gamma]
+      AcceptedResponseSelector.Gamma, ProxyGainSequence.Gamma, hacc]
 
 /-- Accepted proposal or fallback always improves true error by the selected gain. -/
 theorem AcceptedResponseSelector.true_error_improves
