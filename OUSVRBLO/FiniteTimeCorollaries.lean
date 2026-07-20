@@ -14,9 +14,9 @@ theorem range_expect_eq_seq_average {T : ℕ} (hT : 0 < T)
     (a : ℕ → ℝ) :
     Finset.expect (Finset.range T) a =
       (1 / (T : ℝ)) * SeqSum T a := by
-  have hTne : (T : ℝ) ≠ 0 := by
-    exact_mod_cast (Nat.ne_of_gt hT)
-  simp [Finset.expect, SeqSum, div_eq_mul_inv, hTne]
+  simp only [Finset.expect, Finset.card_range, SeqSum]
+  rw [← NNRat.cast_smul_eq_nnqsmul ℝ]
+  simp [smul_eq_mul, div_eq_mul_inv, Nat.ne_of_gt hT]
 
 /-- Every nonempty finite horizon contains an iterate no larger than the
 arithmetic average. -/
@@ -24,7 +24,7 @@ theorem exists_le_seq_average {T : ℕ} (hT : 0 < T)
     (a : ℕ → ℝ) :
     ∃ t < T, a t ≤ (1 / (T : ℝ)) * SeqSum T a := by
   have hrange : (Finset.range T).Nonempty := by
-    exact Finset.range_nonempty.mpr (Nat.ne_of_gt hT)
+    exact ⟨0, Finset.mem_range.mpr hT⟩
   have hexpect :
       ∃ t ∈ Finset.range T, a t ≤ Finset.expect (Finset.range T) a := by
     exact Finset.exists_le_of_expect_le hrange le_rfl
