@@ -115,8 +115,6 @@ It derives rather than assumes:
 - selected residual/error nonnegativity;
 - the residual envelope and total contraction error;
 - feasibility of the gain-aware error scale;
-- the exact ambient inexact-gradient norm identity when the value-gradient
-  embedding layer is used;
 - `H_t = sqrt (CR * Q_t + b_t)` and its square identity;
 - `stepNorm_t = norm (G_t + Err_t)` and the squared-sum estimate;
 - upper-block displacement control;
@@ -124,6 +122,27 @@ It derives rather than assumes:
 - the final residual recursion;
 - every Lyapunov coefficient inequality;
 - finite-time and asymptotic conclusions.
+
+`ValueGradientTrajectorySystem` strengthens the error-vector layer by defining
+`Err_t` from actual represented value-gradient vectors and an isometric ambient
+embedding.  It derives the exact norm identity rather than accepting an unrelated
+squared-error bound.
+
+`ValueGradientFixedPenaltyCertificate` supplies the remaining semantic coupling:
+the represented value gradient used to define `Err_t` is exactly the value
+component of the fixed-penalty objective gradient.  Under this certificate Lean
+checks
+
+```text
+G_t = gradOuter_t + lam • (gradLower_t - embed gradV_t)
+```
+
+and
+
+```text
+G_t + Err_t
+  = gradOuter_t + lam • (gradLower_t - embed gradOnline_t).
+```
 
 The selector is defined inside a `noncomputable` section because its conditions
 are inequalities over real numbers.  This is a proof-level mathematical selector,
@@ -236,6 +255,11 @@ A component-level certificate therefore generates the trajectory
 `HasGradientAt` certificate used by the objective-gradient stationarity
 statements.
 
+`ValueGradientFixedPenaltyCoupling.lean` additionally identifies the value
+component above with `embed gradV_t` from the proposal layer.  It proves that
+adding the exact error replaces `gradV_t` by the selected `gradOnline_t` in the
+actual fixed-penalty update direction.
+
 ### Descent, residual drift, and coefficient accounting
 
 Lean checks:
@@ -249,7 +273,17 @@ Lean checks:
 - one-step Lyapunov descent telescopes to exact and simplified cumulative
   budgets.
 
-### Finite-time and asymptotic layer
+`ExplicitStepSize.lean` verifies the transparent sufficient split
+
+```text
+CR * sqrt(2) * lam * eta <= theta / 8
+CR * lam^2 * LR * eta^2 <= theta / 8
+```
+
+and direct sufficient bounds for the linear and quadratic pieces.  When `LR=0`,
+the quadratic piece is automatic.
+
+### Finite-time, asymptotic, and persistent-error layer
 
 Lean checks:
 
@@ -282,6 +316,24 @@ Lean checks:
 
 The resulting gradient-norm stationarity complexity is `O(epsilon^-2)`.
 
+For persistent bounded perturbations, define
+
+```text
+weightedPerturbation_t
+  = Ceps * eps_t + Cb * b_t + Cd * d_t.
+```
+
+If `weightedPerturbation_t <= floor`, Lean proves
+
+```text
+(1 / T) * sum jointMeasure_t
+  <= 4 * (Psi_0 - Pstar) / (eta * T) + 4 * floor / eta,
+```
+
+and a same-iterate certificate with the same right-hand side.  Thus persistent
+noise or fixed tolerances produce a certified neighborhood rather than an
+unjustified zero-error limit.
+
 ## Remaining analytic boundary
 
 The following remain explicit local interfaces rather than globally proved facts
@@ -298,10 +350,13 @@ for a real LLM/LoRA system:
 6. stochastic mini-batch analogues of the deterministic local inequalities;
 7. projected/proximal main-variable gradient-mapping theory;
 8. original BLO KKT convergence or general nonconvex BLO global convergence;
-9. convergence of the iterates to a unique point.
+9. convergence of the iterates to a unique point;
+10. extraction and numerical stability of the proof-level real-valued selector.
 
 The checked result is therefore a restricted/local interface theorem.  It proves
 that arbitrary learned proposals can be routed through an explicit
 certificate-generated fallback without invalidating the fixed-penalty
 stationarity budget, while uncertainty-adjusted accepted improvements enter the
-budget as a true nonnegative favorable term.
+budget as a true nonnegative favorable term.  It also distinguishes summable
+certificate errors, which give pointwise convergence, from persistent bounded
+errors, which give an explicit stationarity/residual floor.
