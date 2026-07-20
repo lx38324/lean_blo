@@ -100,11 +100,12 @@ theorem TrajectoryCertifiedProposalGainSystem.smooth_step
         -S.driftParameters.eta • (S.G t + S.Err t)⟫_ℝ =
         -S.driftParameters.eta *
           ⟪S.G t, S.G t + S.Err t⟫_ℝ := by
-    simp
+    simpa using real_inner_smul_right
+      (S.G t) (S.G t + S.Err t) (-S.driftParameters.eta)
   have hnorm :
       ‖-S.driftParameters.eta • (S.G t + S.Err t)‖ ^ 2 =
         S.driftParameters.eta ^ 2 * ‖S.G t + S.Err t‖ ^ 2 := by
-    simp [norm_smul, abs_of_nonneg heta]
+    rw [norm_smul, Real.norm_eq_abs, abs_neg, abs_of_nonneg heta, mul_pow]
   rw [hinner, hnorm] at hs
   calc
     S.objective (S.z (t + 1))
@@ -138,7 +139,7 @@ theorem TrajectoryCertifiedProposalGainSystem.displacement_bound
     _ = ‖-S.driftParameters.eta • (S.G t + S.Err t)‖ := by
           rw [S.update_displacement t]
     _ = S.driftParameters.eta * ‖S.G t + S.Err t‖ := by
-          simp [norm_smul, abs_of_nonneg heta]
+          rw [norm_smul, Real.norm_eq_abs, abs_neg, abs_of_nonneg heta]
 
 /-- Package the certificate-generated selector and trajectory facts into the
 canonical highest-level theorem. -/
@@ -204,8 +205,10 @@ theorem TrajectoryCertifiedProposalGainSystem.public_Gamma
     (S : TrajectoryCertifiedProposalGainSystem E X) :
     S.toCertifiedGainStepSystem.Gamma =
       (S.proposal.toAcceptedResponseSelector).Gamma := by
-  simpa [TrajectoryCertifiedProposalGainSystem.toCertifiedGainStepSystem] using
-    S.toCanonicalSystem.toSelectedSystem.public_Gamma
+  change
+    S.toCanonicalSystem.toSelectedSystem.toCertifiedGainStepSystem.Gamma =
+      S.toCanonicalSystem.toSelectedSystem.selector.Gamma
+  exact S.toCanonicalSystem.toSelectedSystem.public_Gamma
 
 /-- Exact finite-horizon theorem from the pre-substitution smoothness premise and
 certificate-generated proposal decision. -/
