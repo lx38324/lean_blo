@@ -20,6 +20,7 @@ import OUSVRBLO.SummableCorollaries
 import OUSVRBLO.SummableRates
 import OUSVRBLO.PointwiseAsymptotics
 import OUSVRBLO.JointCertificates
+import OUSVRBLO.IterationComplexity
 import OUSVRBLO.AnalyticClosure
 import OUSVRBLO.AnalyticGainClosure
 import OUSVRBLO.SmoothResidualAnalyticClosure
