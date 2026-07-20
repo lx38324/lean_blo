@@ -59,7 +59,9 @@ theorem ProxyGainSequence.comparison_gain
 theorem ProxyGainSequence.true_error_improves
     (S : ProxyGainSequence) (t : ℕ) :
     S.eO t ≤ S.eB t - S.Gamma t := by
-  simpa using (S.comparison t).true_error_improves
+  change (S.comparison t).eO ≤
+    (S.comparison t).eB - (S.comparison t).gain
+  exact (S.comparison t).true_error_improves
 
 /-- The sequence of accepted uncertainty-adjusted gains is nonnegative. -/
 theorem ProxyGainSequence.Gamma_nonneg
@@ -145,7 +147,7 @@ theorem ProxyResidualCertificate.fallback_Gamma
     (hbaseline : ∀ t, eB t ≤ CR * Q t + b t)
     (t : ℕ) :
     (ProxyResidualCertificate.fallback CR Q b eB hbaseline).Gamma t = 0 := by
-  rfl
+  simp [ProxyResidualCertificate.fallback, ProxyGainSequence.Gamma]
 
 end
 
