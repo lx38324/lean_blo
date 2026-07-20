@@ -91,8 +91,7 @@ theorem AnalyticGainSystem.descent_interface
     (S.P t) (S.P (t + 1)) S.driftParameters.eta S.LP
     S.driftParameters.lam S.CR (S.Q t) (S.b t) (S.Gamma t)
     (S.G t) (S.Err t) (le_of_lt S.driftParameters.eta_pos)
-    (le_of_lt S.driftParameters.lam_pos) S.step_size (S.smooth_step t)
-    (S.certified_error_bound t)
+    S.step_size (S.smooth_step t) (S.certified_error_bound t)
 
 /-- The raw residual compatibility inequality yields the enhanced drift with the
 favorable term `-2 * Aeta * lam^2 * Gamma`. -/
@@ -105,7 +104,7 @@ theorem AnalyticGainSystem.drift_interface
         + S.driftParameters.beta * S.b t
         - 2 * S.driftParameters.Aeta * S.driftParameters.lam ^ 2 * S.Gamma t
         + S.d t := by
-  let D : CertifiedResidualDriftScalar where
+  let D : CertifiedResidualDriftScalar := {
     eta := S.driftParameters.eta
     lam := S.driftParameters.lam
     mu := S.driftParameters.mu
@@ -133,6 +132,7 @@ theorem AnalyticGainSystem.drift_interface
     raw_drift := S.raw_drift t
     step_sq_bound := S.step_sq_bound t
     error_bound := S.certified_error_bound t
+  }
   simpa [D, CertifiedResidualDriftScalar.Aeta,
     CertifiedResidualDriftScalar.beta, CertifiedResidualDriftScalar.parameters]
     using D.certified_drift
