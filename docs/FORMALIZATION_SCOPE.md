@@ -19,7 +19,7 @@ baseline residual-to-error control
   => eO_t <= CR * Q_t + b_t - Gamma_t
 ```
 
-Under the analytic descent and residual-drift premises, together with
+Under the analytic descent and residual-smoothness premises, together with
 `CR * beta <= theta / 4`, Lean checks
 
 ```text
@@ -38,6 +38,12 @@ where
 Cgain = eta * lam^2 / 2 + 2 * alpha * Aeta * lam^2,
 eta * lam^2 / 2 <= Cgain <= 3/4 * eta * lam^2.
 ```
+
+The highest-level `EndToEndCertifiedGainSystem` does not take the collected
+one-step descent inequality, collected residual recursion, certified error
+bound, envelope contraction, or final coefficient inequalities as independent
+fields. It constructs them from the safeguard, sequence proxy, local smoothness,
+residual-gradient, displacement, and small-step premises.
 
 ## Coverage map
 
@@ -118,6 +124,13 @@ eta * lam^2 / 2 <= Cgain <= 3/4 * eta * lam^2.
   `SmoothResidualAnalyticSafetySystem.cumulative_budget`,
   `SmoothResidualAnalyticGainSystem.toAnalyticGainSystem`, and
   `SmoothResidualAnalyticGainSystem.cumulative_budget`.
+- End-to-end certificate-facing closure:
+  `EndToEndCertifiedGainSystem.proxyCertificate`,
+  `EndToEndCertifiedGainSystem.certified_error_bound`,
+  `EndToEndCertifiedGainSystem.toSmoothResidualAnalyticGainSystem`,
+  `EndToEndCertifiedGainSystem.toCertifiedGainStepSystem`,
+  `EndToEndCertifiedGainSystem.cumulative_budget`, and
+  `EndToEndCertifiedGainSystem.cumulative_budget_simple`.
 - Fallback-safe public theorem:
   `CertifiedSafetySystem.one_step_lyapunov`,
   `CertifiedSafetySystem.cumulative_budget`, and averaged corollaries.
@@ -131,8 +144,14 @@ eta * lam^2 / 2 <= Cgain <= 3/4 * eta * lam^2.
   `CertifiedGainStepSystem.exists_small_residual_iterate`.
 - Same-iterate joint performance layer:
   the safety and gain-system `jointMeasure`, `joint_average_bound`, and
-  `exists_joint_certificate` theorems.  The gain itself is retained separately
+  `exists_joint_certificate` theorems. The gain itself is retained separately
   as `budgetDensity` rather than treated as an error to minimize.
+- End-to-end finite-time and pointwise layer:
+  `ResidualSafeguardSystem.eps_summable`,
+  `EndToEndCertifiedGainSystem.exists_joint_certificate`,
+  `EndToEndCertifiedGainSystem.exists_joint_certificate_of_summable`, and the
+  end-to-end stationarity, residual, and gain `tendsto_zero_of_summable`
+  theorems.
 - Bounded-budget asymptotic layer:
   `seq_average_tendsto_zero_of_bounded_partial_sums`, the safety and gain-system
   partial-sum bounds, and the stationarity/residual/gain
@@ -190,9 +209,14 @@ Lean checks:
   squared value-gradient error control imply the final residual recursion;
 - the certified gain appears favorably in both surrogate descent and residual
   drift;
+- the complete safeguard, sequence proxy, residual-smoothness, and small-step
+  certificate chain constructs the public certified-gain system without assuming
+  the final one-step inequalities or coefficient bounds;
 - one-step inequalities telescope to finite-horizon budgets;
 - finite-horizon budgets imply averaged, best-iterate, and same-iterate joint
   stationarity/residual bounds;
+- summability of `epsBase` and the residual-acceptance tolerance implies
+  summability of the total envelope error `eps = epsBase + tau`;
 - uniformly bounded accumulated right-hand sides imply bounded stationarity,
   residual, and gain partial sums and hence average convergence to zero;
 - summability of the nonnegative perturbation sequences supplies the required
