@@ -26,8 +26,10 @@ import OUSVRBLO.SummableCorollaries
 import OUSVRBLO.SummableRates
 import OUSVRBLO.PointwiseAsymptotics
 import OUSVRBLO.JointCertificates
+import OUSVRBLO.GainAdjustedRates
 import OUSVRBLO.IterationComplexity
 import OUSVRBLO.PersistentErrorFloor
+import OUSVRBLO.StochasticExpectedGain
 import OUSVRBLO.AnalyticClosure
 import OUSVRBLO.AnalyticGainClosure
 import OUSVRBLO.SmoothResidualAnalyticClosure
@@ -50,5 +52,6 @@ import OUSVRBLO.RestrictedEnvelope
 import OUSVRBLO.ResponseErrorBound
 import OUSVRBLO.StrongMonotonicityCertificate
 import OUSVRBLO.ProximalResponseCertificate
+import OUSVRBLO.ProximalLocalInstantiation
 import OUSVRBLO.ContractionResidualCertificate
 import OUSVRBLO.QuadraticResponseExample
