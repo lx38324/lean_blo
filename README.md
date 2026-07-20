@@ -25,7 +25,7 @@ CR * beta <= theta / 4
 
 one-step descent + drift + envelope contraction
   => finite-horizon stationarity, residual, and gain budgets
-  => averaged, best-iterate, and bounded-budget asymptotic guarantees
+  => averaged, best-iterate, bounded-budget, and summable-error guarantees
 ```
 
 The exact enhanced budget is
@@ -57,7 +57,8 @@ betaEta = sqrt 2 * lam * eta + lam^2 * LR * eta^2.
 Lean checks coefficient accounting, residual safeguard closure, calibrated
 proxy algebra, Hilbert-space inexact-descent algebra, scalar residual-drift
 propagation, finite-horizon telescoping, averaged and best-iterate corollaries,
-and convergence of averages under a uniformly bounded accumulated budget.
+and average convergence under uniformly bounded or summable perturbation
+budgets.
 
 The repository does not prove that a real LLM/LoRA training system
 automatically satisfies local smoothness, residual-to-value-gradient control,
@@ -108,6 +109,9 @@ bash scripts/check_no_placeholder.sh
   guarantees.
 - `OUSVRBLO/Asymptotics.lean`: bounded-partial-sum and average-to-zero
   corollaries for stationarity, residual, and certified gain.
+- `OUSVRBLO/SummableCorollaries.lean`: derives the bounded accumulated budget
+  from summable nonnegative perturbations and gives direct average-convergence
+  theorems.
 - `OUSVRBLO/SafetyDescent.lean`: reusable low-level scalar algebraic core.
 - `OUSVRBLO/ImprovementDescent.lean`: legacy nominal-improvement formulation.
 - `OUSVRBLO/LyapunovBudget.lean`: budget structures and averaged consequences.
