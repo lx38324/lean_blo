@@ -13,6 +13,7 @@ import OUSVRBLO.ProxyCertificate
 import OUSVRBLO.ProxySequenceCertificate
 import OUSVRBLO.AcceptedResponseSelector
 import OUSVRBLO.CertifiedProposalAcceptance
+import OUSVRBLO.CertifiedGainFeasibility
 import OUSVRBLO.ValueGradientErrorEmbedding
 import OUSVRBLO.RestrictedValueProposalData
 import OUSVRBLO.CertifiedGainDescent
