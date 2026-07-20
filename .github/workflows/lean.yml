@@ -31,6 +31,9 @@ jobs:
       - name: Placeholder-proof check
         if: always()
         run: bash scripts/check_no_placeholder.sh
+      - name: Documentation theorem sanity check
+        if: always()
+        run: python3 scripts/check_docs_sanity.py
       - name: Report Lean build failure
         if: steps.lean_build.outcome == 'failure'
         run: |
