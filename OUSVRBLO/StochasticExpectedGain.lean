@@ -172,6 +172,21 @@ theorem StochasticExpectedGainSystem.one_step_lyapunov
           + (S.LP * S.eta ^ 2 / 2
             + S.alpha * S.Aeta) * S.sigmaSq t := by
     nlinarith [hdes, hdrift_scaled]
+  let noiseTerm : ℝ :=
+    (S.LP * S.eta ^ 2 / 2 + S.alpha * S.Aeta) * S.sigmaSq t
+  have hcombined_no_noise :
+      S.EP (t + 1) + S.alpha * S.ER (t + 1) - noiseTerm ≤
+        S.EP t
+          - (S.eta / 2 - 2 * S.alpha * S.Aeta) * S.EGsq t
+          + (S.eta * S.lam ^ 2 * S.CR / 2
+            + S.alpha * (1 + S.CR * S.beta)) * S.EQ t
+          + (S.eta * S.lam ^ 2 / 2
+            + S.alpha * S.beta) * S.Eb t
+          + S.alpha * S.Ed t
+          - (S.eta * S.lam ^ 2 / 2
+            + 2 * S.alpha * S.Aeta * S.lam ^ 2) * S.EGamma t := by
+    dsimp [noiseTerm]
+    linarith [hcombined]
   have hcontr_scaled :=
     mul_le_mul_of_nonneg_left hcontr
       S.toSafetyParameters.envelope_coeff_nonneg
@@ -187,10 +202,23 @@ theorem StochasticExpectedGainSystem.one_step_lyapunov
     mul_le_mul_of_nonneg_right heps (S.Eeps_nonneg t)
   have hb_scaled :=
     mul_le_mul_of_nonneg_right hb (S.Eb_nonneg t)
-  ring_nf at hcombined hcontr_scaled htwo_scaled hdrop_scaled
-    heps_scaled hb_scaled ⊢
-  linarith [hcombined, hcontr_scaled, htwo_scaled, hdrop_scaled,
-    heps_scaled, hb_scaled]
+  have hdet :
+      S.EP (t + 1) + S.alpha * S.ER (t + 1) - noiseTerm ≤
+        S.EP t + S.alpha * S.ER t
+          - S.eta / 4 * S.EGsq t
+          - S.eta * S.lam ^ 2 * S.CR / 4 * S.ER t
+          - (S.eta * S.lam ^ 2 / 2
+            + 2 * S.alpha * S.Aeta * S.lam ^ 2) * S.EGamma t
+          + S.eta * S.lam ^ 2 * S.CR * (3 / 4 + 1 / S.theta) *
+              S.Eeps t
+          + 3 / 4 * S.eta * S.lam ^ 2 * S.Eb t
+          + S.alpha * S.Ed t := by
+    ring_nf at hcombined_no_noise hcontr_scaled htwo_scaled hdrop_scaled
+      heps_scaled hb_scaled ⊢
+    linarith [hcombined_no_noise, hcontr_scaled, htwo_scaled,
+      hdrop_scaled, heps_scaled, hb_scaled]
+  dsimp [noiseTerm] at hdet
+  linarith [hdet]
 
 /-- Exact finite-horizon expected budget. -/
 theorem StochasticExpectedGainSystem.cumulative_budget
@@ -279,8 +307,13 @@ theorem StochasticExpectedGainSystem.joint_average_bound
   have hscale : 0 ≤ 4 / (S.eta * (T : ℝ)) :=
     le_of_lt (div_pos (by norm_num) hden)
   have hscaled := mul_le_mul_of_nonneg_left hadj hscale
-  exact (S.joint_average_bound_with_gain hT).trans (by
-    simpa [div_eq_mul_inv, mul_assoc] using hscaled)
+  calc
+    (1 / (T : ℝ)) * SeqSum T S.jointMeasure
+        ≤ 4 * S.gainAdjustedRhs T / (S.eta * (T : ℝ)) :=
+          S.joint_average_bound_with_gain hT
+    _ = (4 / (S.eta * (T : ℝ))) * S.gainAdjustedRhs T := by ring
+    _ ≤ (4 / (S.eta * (T : ℝ))) * S.accumulatedRhs T := hscaled
+    _ = 4 * S.accumulatedRhs T / (S.eta * (T : ℝ)) := by ring
 
 /-- Uniform second-moment and certificate-error bounds produce an explicit
 expected neighborhood. -/
@@ -346,16 +379,15 @@ theorem StochasticExpectedGainSystem.joint_average_bound_of_uniform_errors
   calc
     (1 / (T : ℝ)) * SeqSum T S.jointMeasure
         ≤ 4 * S.accumulatedRhs T / (S.eta * (T : ℝ)) := hbase
-    _ ≤ 4 * (S.EPsi 0 - S.Pstar
-          + (T : ℝ) * (S.Ceps * epsBar + S.Cb * bBar + S.Cd * dBar
-            + S.Csigma * sigmaBar)) /
-          (S.eta * (T : ℝ)) := by
-            simpa [div_eq_mul_inv, mul_assoc] using hscaled
+    _ = (4 / (S.eta * (T : ℝ))) * S.accumulatedRhs T := by ring
+    _ ≤ (4 / (S.eta * (T : ℝ))) *
+          (S.EPsi 0 - S.Pstar
+            + (T : ℝ) * (S.Ceps * epsBar + S.Cb * bBar + S.Cd * dBar
+              + S.Csigma * sigmaBar)) := hscaled
     _ = 4 * (S.EPsi 0 - S.Pstar) / (S.eta * (T : ℝ))
           + 4 * (S.Ceps * epsBar + S.Cb * bBar + S.Cd * dBar
             + S.Csigma * sigmaBar) / S.eta := by
-            field_simp [ne_of_gt S.eta_pos, ne_of_gt hTreal]
-            ring
+            field_simp [ne_of_gt S.eta_pos, ne_of_gt hTreal] <;> ring
 
 end
 
