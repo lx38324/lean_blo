@@ -11,7 +11,14 @@ noncomputable section
 and a represented value term. -/
 def fixedPenaltyObjective
     {E : Type*} (outer lower value : E → ℝ) (lam : ℝ) : E → ℝ :=
-  fun z => outer z + lam * (lower z - value z)
+  outer + lam • (lower - value)
+
+@[simp]
+theorem fixedPenaltyObjective_apply
+    {E : Type*} (outer lower value : E → ℝ) (lam : ℝ) (z : E) :
+    fixedPenaltyObjective outer lower value lam z =
+      outer z + lam * (lower z - value z) := by
+  simp [fixedPenaltyObjective, smul_eq_mul]
 
 /-- Gradient vector corresponding to the fixed-penalty objective. -/
 def fixedPenaltyGradient
@@ -31,22 +38,15 @@ theorem hasGradientAt_fixedPenaltyObjective
     (hValue : HasGradientAt value gradValue z) :
     HasGradientAt (fixedPenaltyObjective outer lower value lam)
       (fixedPenaltyGradient gradOuter gradLower gradValue lam) z := by
-  have hdiff : HasGradientAt (lower - value) (gradLower - gradValue) z :=
-    hLower.sub hValue
-  have hscaled :
-      HasGradientAt (lam • (lower - value))
-        (lam • (gradLower - gradValue)) z :=
-    hdiff.const_smul lam
-  have hsum :
-      HasGradientAt (outer + lam • (lower - value))
-        (gradOuter + lam • (gradLower - gradValue)) z :=
-    hOuter.add hscaled
-  simpa [fixedPenaltyObjective, fixedPenaltyGradient, Pi.add_apply,
-    Pi.sub_apply, Pi.smul_apply, smul_eq_mul] using hsum
+  rw [hasGradientAt_iff_hasFDerivAt]
+  have hdiff := hLower.hasFDerivAt.sub hValue.hasFDerivAt
+  have hscaled := hdiff.const_smul lam
+  have hsum := hOuter.hasFDerivAt.add hscaled
+  simpa [fixedPenaltyObjective, fixedPenaltyGradient] using hsum
 
 /--
 Data certifying that the objective and gradient sequence in the trajectory
- theorem come from an explicit fixed-penalty decomposition.
+theorem come from an explicit fixed-penalty decomposition.
 -/
 structure FixedPenaltyTrajectoryGradientCertificate
     {E X : Type*}
@@ -75,7 +75,7 @@ structure FixedPenaltyTrajectoryGradientCertificate
 
 /-- A fixed-penalty component certificate generates the objective-gradient
 certificate consumed by the stationarity statements. -/
-def FixedPenaltyTrajectoryGradientCertificate.toTrajectoryGradientCertificate
+theorem FixedPenaltyTrajectoryGradientCertificate.toTrajectoryGradientCertificate
     {E X : Type*}
     [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
     [NormedAddCommGroup X] [InnerProductSpace ℝ X]
