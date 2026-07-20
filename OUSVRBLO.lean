@@ -14,6 +14,7 @@ import OUSVRBLO.FiniteTimeCorollaries
 import OUSVRBLO.Asymptotics
 import OUSVRBLO.SummableCorollaries
 import OUSVRBLO.SummableRates
+import OUSVRBLO.PointwiseAsymptotics
 import OUSVRBLO.JointCertificates
 import OUSVRBLO.AnalyticClosure
 import OUSVRBLO.AnalyticGainClosure
