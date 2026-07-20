@@ -30,6 +30,7 @@ structure ValueGradientProposalData
   rhoBase : ℕ → ℝ
   rhoProp : ℕ → ℝ
   Rbase_nonneg : ∀ t, 0 ≤ Rbase t
+  Rprop_nonneg : ∀ t, 0 ≤ Rprop t
   epsBase_nonneg : ∀ t, 0 ≤ epsBase t
   tauR_nonneg : ∀ t, 0 ≤ tauR t
   rhoBase_nonneg : ∀ t, 0 ≤ rhoBase t
@@ -75,6 +76,9 @@ def ValueGradientProposalData.toCertifiedProposalData
   rhoB := S.rhoBase
   rhoProp := S.rhoProp
   Rbase_nonneg := S.Rbase_nonneg
+  Rprop_nonneg := S.Rprop_nonneg
+  eB_nonneg := fun t => sq_nonneg ‖S.gradV t - S.gradBase t‖
+  eProp_nonneg := fun t => sq_nonneg ‖S.gradV t - S.gradProp t‖
   epsBase_nonneg := S.epsBase_nonneg
   tauR_nonneg := S.tauR_nonneg
   rhoB_nonneg := S.rhoBase_nonneg
