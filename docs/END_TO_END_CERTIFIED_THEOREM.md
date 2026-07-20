@@ -1,11 +1,343 @@
 # End-to-end certified online value-anchor theorem
 
-This note describes the certificate-facing closure between proposal statistics,
-residual and proxy certificates, local analytic premises, and the public
-certified-gain Lyapunov theorem.
+## 1. The theorem-facing objects
 
-`EndToEndCertifiedGainSystem` is an important composed API, but it is no longer
-the highest abstraction in the repository.  The stronger layers are:
+The checked theorem concerns a restricted/local fixed-penalty value-function
+surrogate. A learned updater proposes a response, a certifiable base update
+provides fallback safety, and an explicit selector decides which response enters
+the main update.
+
+At round `t`, the proposal data contain
+
+```text
+R_t                 current response residual,
+Rbase_t             safe-base response residual,
+Rprop_t             proposal response residual,
+eBase_t             base true squared value-gradient error,
+eProp_t             proposal true squared value-gradient error,
+eHatBase_t          base proxy error,
+eHatProp_t          proposal proxy error.
+```
+
+The proposal is accepted exactly when
+
+```text
+Rprop_t <= Rbase_t + tauR_t,
+eHatProp_t <= eHatBase_t - DeltaHat_t + tauE_t,
+0 <= DeltaHat_t - tauE_t - rhoProp_t - rhoBase_t.
+```
+
+The proof-level selected quantities are
+
+```text
+Ronline_t = if accepted then Rprop_t else Rbase_t,
+eOnline_t = if accepted then eProp_t else eBase_t,
+Gamma_t   = if accepted
+            then DeltaHat_t - tauE_t - rhoProp_t - rhoBase_t
+            else 0.
+```
+
+Every rejected proposal is therefore converted into a safe zero-gain fallback
+round by theorem construction.
+
+## 2. Residual safeguard closure
+
+Assume
+
+```text
+Rbase_t <= (1 - theta) * R_t + epsBase_t,
+0 < theta <= 1,
+tauR_t >= 0.
+```
+
+Define
+
+```text
+Q_t   = Rbase_t + tauR_t,
+eps_t = epsBase_t + tauR_t.
+```
+
+Lean proves
+
+```text
+Rbase_t <= Q_t,
+Ronline_t <= Q_t,
+Q_t <= (1 - theta) * R_t + eps_t.
+```
+
+Thus the common residual envelope is generated from the actual base and
+acceptance rule; it is not an independent contraction hypothesis at the highest
+API level.
+
+## 3. Calibrated gain closure
+
+Assume asymmetric calibration
+
+```text
+|eHatProp_t - eProp_t| <= rhoProp_t,
+|eHatBase_t - eBase_t| <= rhoBase_t.
+```
+
+The selector proves in both branches
+
+```text
+0 <= Gamma_t,
+eOnline_t <= eBase_t - Gamma_t.
+```
+
+If
+
+```text
+eBase_t <= CR * Rbase_t + b_t,
+CR > 0,
+```
+
+then
+
+```text
+eOnline_t <= CR * Q_t + b_t - Gamma_t.
+```
+
+Since `eOnline_t` is a true squared norm, Lean also proves
+
+```text
+Gamma_t <= eBase_t,
+0 <= CR * Q_t + b_t - Gamma_t.
+```
+
+## 4. Exact value-gradient error vector
+
+Let
+
+```text
+gValue_t    represented restricted value gradient,
+gBase_t     response gradient at the base response,
+gProp_t     response gradient at the proposal,
+gOnline_t   selector output in gradient space.
+```
+
+Define
+
+```text
+eBase_t   = ||gValue_t - gBase_t||^2,
+eProp_t   = ||gValue_t - gProp_t||^2,
+Err_t     = lambda * embed(gValue_t - gOnline_t),
+```
+
+where `embed` is an isometric linear embedding into the ambient update space.
+Lean proves
+
+```text
+||Err_t||^2 = lambda^2 * eOnline_t
+            <= lambda^2 * (CR * Q_t + b_t - Gamma_t).
+```
+
+## 5. Fixed-penalty objective semantics
+
+For
+
+```text
+P(z) = outer(z) + lambda * (lower(z) - value(z)),
+```
+
+component gradient certificates give
+
+```text
+G_t = gradOuter_t + lambda * (gradLower_t - embed(gValue_t)).
+```
+
+The coupling theorem then proves
+
+```text
+G_t + Err_t
+  = gradOuter_t + lambda * (gradLower_t - embed(gOnline_t)).
+```
+
+Thus the approximate update is exactly the fixed-penalty update that substitutes
+the selected response gradient for the represented exact value gradient.
+
+## 6. Trajectory and residual drift
+
+The deterministic trajectory satisfies
+
+```text
+z_(t+1) - z_t = -eta * (G_t + Err_t),
+eta > 0.
+```
+
+The objective smoothness premise is stated before update substitution:
+
+```text
+P_(t+1) <= P_t
+  + <G_t, z_(t+1) - z_t>
+  + LP / 2 * ||z_(t+1) - z_t||^2,
+LP * eta <= 1.
+```
+
+Residual smoothness starts from `Ronline_t`:
+
+```text
+R_(t+1) <= Ronline_t
+  + <gradR_t, dx_t>
+  + LR / 2 * ||dx_t||^2
+  + d_t,
+```
+
+with
+
+```text
+||gradR_t||^2 <= CR * Q_t + b_t,
+||dx_t|| <= eta * ||G_t + Err_t||.
+```
+
+Lean derives the post-substitution inexact descent and the gain-aware residual
+recursion.
+
+## 7. Parameters
+
+Use
+
+```text
+mu      = 1 / (sqrt(2) * lambda),
+Aeta    = eta / (2 * sqrt(2) * lambda) + LR * eta^2 / 2,
+betaEta = sqrt(2) * lambda * eta + lambda^2 * LR * eta^2.
+```
+
+Assume
+
+```text
+CR * betaEta <= theta / 4.
+```
+
+A checked sufficient condition for `LR > 0` is
+
+```text
+eta <= min(
+  theta / (8 * CR * sqrt(2) * lambda),
+  sqrt(theta / (8 * CR * lambda^2 * LR))
+).
+```
+
+The Lyapunov weight is
+
+```text
+alpha = eta * lambda^2 * CR / theta.
+```
+
+All final coefficient inequalities are derived from these definitions and the
+small-step condition.
+
+## 8. Exact finite-horizon result
+
+Define
+
+```text
+Psi_t = P_t + alpha * R_t,
+Cgain = eta * lambda^2 / 2 + 2 * alpha * Aeta * lambda^2.
+```
+
+Lean verifies
+
+```text
+eta * lambda^2 / 2 <= Cgain <= 3/4 * eta * lambda^2.
+```
+
+For every `T`,
+
+```text
+eta/4 * sum_(t<T) ||G_t||^2
+  + Cgain * sum_(t<T) Gamma_t
+  + eta * lambda^2 * CR / 4 * sum_(t<T) R_t
+  <= Psi_0 - Pstar
+     + Ceps * sum_(t<T) eps_t
+     + Cb * sum_(t<T) b_t
+     + Cd * sum_(t<T) d_t,
+```
+
+where
+
+```text
+Ceps = eta * lambda^2 * CR * (3/4 + 1/theta),
+Cb   = 3/4 * eta * lambda^2,
+Cd   = eta * lambda^2 * CR / theta.
+```
+
+The simplified theorem replaces `Cgain` by `eta * lambda^2 / 2`.
+
+## 9. Same-iterate certificate
+
+For every `T > 0`, Lean proves
+
+```text
+exists t < T,
+  ||G_t||^2 + lambda^2 * CR * R_t
+    <= 4 * accumulatedRhs(T) / (eta * T).
+```
+
+With an objective-gradient certificate, `G_t` can be replaced by
+`gradient P(z_t)` in this statement.
+
+## 10. Perturbation regimes
+
+### Summable errors
+
+If `epsBase_t`, `tauR_t`, `b_t`, and `d_t` are summable, then
+
+```text
+||G_t|| -> 0,
+R_t -> 0,
+Gamma_t -> 0,
+```
+
+and the same-iterate joint measure has an explicit `O(1/T)` bound. The resulting
+gradient-norm complexity is `O(epsilon^-2)`.
+
+### Cesaro-vanishing errors
+
+If only the finite-horizon averages satisfy
+
+```text
+average epsBase_t -> 0,
+average tauR_t     -> 0,
+average b_t        -> 0,
+average d_t        -> 0,
+```
+
+then Lean proves
+
+```text
+average ||G_t||^2 -> 0,
+average R_t       -> 0.
+```
+
+With an objective-gradient certificate,
+
+```text
+average ||gradient P(z_t)||^2 -> 0.
+```
+
+These are average statements; they do not imply pointwise convergence.
+
+### Persistent bounded errors
+
+If
+
+```text
+Ceps * eps_t + Cb * b_t + Cd * d_t <= floor,
+```
+
+then Lean proves the neighborhood certificate
+
+```text
+exists t < T,
+  ||gradient P(z_t)||^2 + lambda^2 * CR * R_t
+    <= 4 * (Psi_0 - Pstar) / (eta * T)
+       + 4 * floor / eta,
+```
+
+when the objective-gradient certificate is supplied.
+
+## 11. API map
 
 ```text
 EndToEndCertifiedGainSystem
@@ -16,555 +348,7 @@ EndToEndCertifiedGainSystem
   +  ValueGradientFixedPenaltyCertificate.
 ```
 
-Each layer removes pre-collected assumptions from the public interface.
-
-## 1. Residual safeguard certificate
-
-Let `R_t` be the current response residual, `R_t^B` the certifiable base-response
-residual, and `R_t^O` the residual of the response actually selected by the
-algorithm.  Assume
-
-$$
-R_t^B\le (1-\theta)R_t+\varepsilon_t^B,
-$$
-
-and
-
-$$
-R_t^O\le R_t^B+\tau_t^R.
-$$
-
-Define
-
-$$
-Q_t:=R_t^B+\tau_t^R,
-\qquad
-\varepsilon_t:=\varepsilon_t^B+\tau_t^R.
-$$
-
-Then
-
-$$
-R_t^B\le Q_t,
-\qquad
-R_t^O\le Q_t,
-\qquad
-Q_t\le(1-\theta)R_t+\varepsilon_t.
-$$
-
-This closure is represented by `ResidualSafeguardSystem`.
-
-## 2. Explicit proposal/fallback selection
-
-For raw proposal data, the acceptance condition is
-
-$$
-R_t^P\le R_t^B+\tau_t^R,
-$$
-
-$$
-\widehat e_t^P
-\le
-\widehat e_t^B-\widehat\Delta_t+\tau_t^e,
-$$
-
-and
-
-$$
-0\le
-\widehat\Delta_t-	au_t^e-ho_t^P-ho_t^B.
-$$
-
-The proof-level Boolean is generated by deciding this conjunction.  The selected
-quantities are
-
-$$
-R_t^O
-=
-\begin{cases}
-R_t^P,&\text{if accepted},\\
-R_t^B,&\text{otherwise},
-\end{cases}
-$$
-
-$$
-e_t^O
-=
-\begin{cases}
-e_t^P,&\text{if accepted},\\
-e_t^B,&\text{otherwise},
-\end{cases}
-$$
-
-and
-
-$$
-\Gamma_t
-=
-\begin{cases}
-\widehat\Delta_t-	au_t^e-ho_t^P-ho_t^B,
-&\text{if accepted},\\
-0,&\text{otherwise}.
-\end{cases}
-$$
-
-The fallback branch is therefore a checked zero-gain branch, not an informal
-algorithmic convention.
-
-Lean files:
-
-- `OUSVRBLO/CertifiedProposalAcceptance.lean`;
-- `OUSVRBLO/AcceptedResponseSelector.lean`.
-
-## 3. Sequence-level calibrated gain certificate
-
-Assume asymmetric proxy calibration
-
-$$
-|\widehat e_t^P-e_t^P|\le\rho_t^P,
-\qquad
-|\widehat e_t^B-e_t^B|\le\rho_t^B.
-$$
-
-In both the accepted and fallback branches Lean proves
-
-$$
-\boxed{
-e_t^O\le e_t^B-\Gamma_t.
-}
-$$
-
-The selector also proves
-
-$$
-\Gamma_t\ge0.
-$$
-
-If the natural base-response error bound is
-
-$$
-e_t^B\le C_RR_t^B+b_t,
-$$
-
-then `R_t^B <= Q_t` gives
-
-$$
-\boxed{
-e_t^O\le C_RQ_t+b_t-\Gamma_t.
-}
-$$
-
-Since `e_t^O >= 0`, Lean additionally derives
-
-$$
-\Gamma_t\le e_t^B,
-$$
-
-and
-
-$$
-\boxed{
-0\le C_RQ_t+b_t-\Gamma_t.
-}
-$$
-
-Thus the gain-aware error scale is automatically feasible; no separate clipping
-operation is required.
-
-Lean files:
-
-- `OUSVRBLO/ProxyCertificate.lean`;
-- `OUSVRBLO/ProxySequenceCertificate.lean`;
-- `OUSVRBLO/CertifiedGainFeasibility.lean`.
-
-## 4. Inexact-gradient error layers
-
-The abstract end-to-end API may assume
-
-$$
-\|E_t\|^2\le\lambda^2e_t^O.
-$$
-
-The stronger vector-valued proposal layer defines
-
-$$
-e_t^B=\|g_t^v-g_t^B\|^2,
-\qquad
-e_t^P=\|g_t^v-g_t^P\|^2,
-$$
-
-selects `g_t^O`, and proves
-
-$$
-e_t^O=\|g_t^v-g_t^O\|^2.
-$$
-
-For an isometric ambient embedding, it defines
-
-$$
-E_t
-=
-\lambda\operatorname{embed}(g_t^v-g_t^O),
-$$
-
-and verifies the exact identity
-
-$$
-\boxed{
-\|E_t\|^2=\lambda^2e_t^O.
-}
-$$
-
-Combining this identity with the calibrated gain certificate gives
-
-$$
-\boxed{
-\|E_t\|^2
-\le
-\lambda^2(C_RQ_t+b_t-\Gamma_t).
-}
-$$
-
-Lean files:
-
-- `OUSVRBLO/ValueGradientErrorEmbedding.lean`;
-- `OUSVRBLO/ValueGradientTrajectory.lean`.
-
-## 5. Analytic premises
-
-The composed analytic gain system uses the post-substitution local surrogate
-smoothness inequality
-
-$$
-P_{t+1}
-\le
-P_t-\eta\langle G_t,G_t+E_t\rangle
-+
-\frac{L_P\eta^2}{2}\|G_t+E_t\|^2,
-$$
-
-with
-
-$$
-L_P\eta\le1.
-$$
-
-For the response residual it uses
-
-$$
-R_{t+1}
-\le
-Q_t+\langle r_t,\Delta x_t\rangle
-+
-\frac{L_R}{2}\|\Delta x_t\|^2+d_t,
-$$
-
-along with
-
-$$
-\|r_t\|^2\le C_RQ_t+b_t,
-$$
-
-$$
-H_t^2=C_RQ_t+b_t,
-\qquad H_t\ge0,
-$$
-
-$$
-\|\Delta x_t\|\le\eta s_t,
-$$
-
-and
-
-$$
-s_t^2\le2\|G_t\|^2+2\|E_t\|^2.
-$$
-
-Cauchy--Schwarz, Young's inequality, and the certified error bound produce
-
-$$
-\boxed{
-\begin{aligned}
-R_{t+1}
-\le{}&(1+C_R\beta)Q_t
-+2A_\eta\|G_t\|^2
-+\beta b_t
-\\
-&-2A_\eta\lambda^2\Gamma_t+d_t.
-\end{aligned}
-}
-$$
-
-Lean files:
-
-- `OUSVRBLO/ResidualSmoothnessCertificate.lean`;
-- `OUSVRBLO/ResidualDrift.lean`;
-- `OUSVRBLO/AnalyticGainClosure.lean`;
-- `OUSVRBLO/SmoothResidualAnalyticClosure.lean`.
-
-## 6. Natural selected-response and canonical layers
-
-`SelectedEndToEndCertifiedGainSystem` replaces two enlarged public premises by
-more natural ones.
-
-First, it starts from
-
-$$
-e_t^B\le C_RR_t^B+b_t,
-$$
-
-rather than requiring the user to provide the envelope-based version directly.
-
-Second, its residual smoothness premise starts from the residual of the response
-actually selected:
-
-$$
-R_{t+1}
-\le
-R_t^O+\langle r_t,\Delta x_t\rangle
-+
-\frac{L_R}{2}\|\Delta x_t\|^2+d_t.
-$$
-
-The selector proves both lifts to `Q_t`.
-
-`CanonicalSelectedEndToEndCertifiedGainSystem` then defines
-
-$$
-H_t:=\sqrt{C_RQ_t+b_t},
-$$
-
-and
-
-$$
-s_t:=\|G_t+E_t\|
-$$
-
-internally.  Lean proves their nonnegativity, the square identity for `H_t`, and
-
-$$
-\|G_t+E_t\|^2
-\le
-2\|G_t\|^2+2\|E_t\|^2.
-$$
-
-Thus `H_t`, `s_t`, and their algebraic side conditions are no longer public
-fields.
-
-Lean files:
-
-- `OUSVRBLO/SelectedEndToEndCertifiedGain.lean`;
-- `OUSVRBLO/CanonicalSelectedEndToEndCertifiedGain.lean`.
-
-## 7. Trajectory closure
-
-`TrajectoryCertifiedProposalGainSystem` stores the actual deterministic update
-
-$$
-z_{t+1}-z_t=-\eta(G_t+E_t),
-$$
-
-and the objective smoothness inequality before substitution:
-
-$$
-P_{t+1}
-\le
-P_t+\langle G_t,z_{t+1}-z_t\rangle
-+
-\frac{L_P}{2}\|z_{t+1}-z_t\|^2.
-$$
-
-It also stores a contractive upper-block map `projectX` and defines
-
-$$
-\Delta x_t
-=
-\operatorname{projectX}(z_{t+1}-z_t).
-$$
-
-Lean derives
-
-$$
-P_{t+1}
-\le
-P_t-\eta\langle G_t,G_t+E_t\rangle
-+
-\frac{L_P\eta^2}{2}\|G_t+E_t\|^2,
-$$
-
-and
-
-$$
-\|\Delta x_t\|
-\le
-\eta\|G_t+E_t\|.
-$$
-
-Thus the post-substitution smoothness and displacement premises are no longer
-assumed independently.
-
-Lean file: `OUSVRBLO/TrajectoryCertifiedProposalGain.lean`.
-
-## 8. Fixed-penalty objective semantics
-
-For
-
-$$
-P(z)=F(z)+\lambda(h(z)-v(z)),
-$$
-
-component gradient certificates give
-
-$$
-G_t
-=
- g_t^F
-+
-\lambda(g_t^h-g_t^v).
-$$
-
-The semantic coupling layer identifies the value-gradient component `g_t^v`
-with the represented value gradient used to define the online error.  It then
-proves
-
-$$
-\boxed{
-G_t+E_t
-=
- g_t^F
-+
-\lambda(g_t^h-g_t^O).
-}
-$$
-
-Consequently the trajectory update is exactly the fixed-penalty update using the
-response gradient selected by the certificates.
-
-Lean files:
-
-- `OUSVRBLO/FixedPenaltyGradientSemantics.lean`;
-- `OUSVRBLO/ValueGradientFixedPenaltyCoupling.lean`;
-- `OUSVRBLO/TrajectoryGradientSemantics.lean`.
-
-## 9. Parameter package and explicit step sizes
-
-For `mu > 0`, define
-
-$$
-A_\eta=
-\frac{\eta\mu}{2}
-+
-\frac{L_R\eta^2}{2},
-\qquad
-\beta=
-2A_\eta\lambda^2+
-\frac{\eta}{2\mu}.
-$$
-
-The manuscript choice
-
-$$
-\mu=rac{1}{\sqrt2\lambda}
-$$
-
-gives
-
-$$
-A_\eta
-=
-\frac{\eta}{2\sqrt2\lambda}
-+
-\frac{L_R\eta^2}{2},
-$$
-
-and
-
-$$
-\beta_\eta
-=
-\sqrt2\lambda\eta+
-\lambda^2L_R\eta^2.
-$$
-
-Assume
-
-$$
-C_R\beta_\eta\le\frac\theta4,
-\qquad
-0<\theta\le1,
-$$
-
-and set
-
-$$
-\alpha=rac{\eta\lambda^2C_R}{\theta}.
-$$
-
-Lean derives all final Lyapunov coefficient inequalities from these premises.
-They are not independent fields of the end-to-end system.
-
-A transparent sufficient split is
-
-$$
-C_R\sqrt2\lambda\eta\le\frac\theta8,
-$$
-
-and
-
-$$
-C_R\lambda^2L_R\eta^2\le\frac\theta8.
-$$
-
-Direct sufficient bounds for these two pieces are formalized in
-`OUSVRBLO/ExplicitStepSize.lean`.
-
-## 10. Exact finite-horizon theorem
-
-Define
-
-$$
-\Psi_t=P_t+\alpha R_t,
-$$
-
-and
-
-$$
-C_\Gamma
-=
-\frac{\eta\lambda^2}{2}
-+2\alpha A_\eta\lambda^2.
-$$
-
-Then
-
-$$
-\frac{\eta\lambda^2}{2}
-\le C_\Gamma
-\le\frac34\eta\lambda^2,
-$$
-
-and for every finite horizon `T`,
-
-$$
-\boxed{
-\begin{aligned}
-&\frac\eta4\sum_{t<T}\|G_t\|^2
-+C_\Gamma\sum_{t<T}\Gamma_t
-+\frac{\eta\lambda^2C_R}{4}\sum_{t<T}R_t
-\\
-&\le
-\Psi_0-P_\star
-+C_\varepsilon\sum_{t<T}\varepsilon_t
-+C_b\sum_{t<T}b_t
-+C_d\sum_{t<T}d_t.
-\end{aligned}
-}
-$$
-
-The conventional simplified version replaces `C_Gamma` by its checked lower
-bound `eta * lambda^2 / 2`.
-
-Principal declarations:
+Principal result declarations include
 
 ```text
 EndToEndCertifiedGainSystem.cumulative_budget
@@ -572,85 +356,23 @@ SelectedEndToEndCertifiedGainSystem.cumulative_budget
 CanonicalSelectedEndToEndCertifiedGainSystem.cumulative_budget
 TrajectoryCertifiedProposalGainSystem.cumulative_budget
 ValueGradientTrajectorySystem.cumulative_budget
+TrajectoryCertifiedProposalGainSystem.exists_objective_gradient_joint_certificate
+TrajectoryCertifiedProposalGainSystem.objective_gradient_average_tendsto_zero_of_cesaro
+TrajectoryCertifiedProposalGainSystem.exists_objective_gradient_joint_certificate_of_error_floor
 ```
-
-Each has a corresponding simplified coefficient version.
-
-## 11. Same-iterate and asymptotic consequences
-
-The favorable gain term is not an error quantity, so the same-iterate
-performance measure is
-
-$$
-\|G_t\|^2+\lambda^2C_RR_t.
-$$
-
-For every `T>0`, Lean obtains
-
-$$
-\boxed{
-\exists t<T:\quad
-\|G_t\|^2+
-\lambda^2C_RR_t
-\le
-\frac{4\mathcal B_T}{\eta T},
-}
-$$
-
-where `B_T` is the accumulated right-hand-side budget.
-
-If `epsBase`, `tauR`, `b`, and `d` are summable, the same-iterate rate becomes
-
-$$
-\exists t<T:\quad
-\|G_t\|^2+
-\lambda^2C_RR_t
-\le
-\frac{4\mathcal B_\infty}{\eta T}.
-$$
-
-The same assumptions imply
-
-$$
-\|G_t\|\to0,
-\qquad
-R_t\to0,
-\qquad
-\Gamma_t\to0.
-$$
-
-The last limit is a finite-budget consequence for a nonnegative favorable term;
-it does not make small gain a performance objective.
-
-For persistent bounded weighted perturbations `delta_t <= floor`, Lean instead
-proves
-
-$$
-\exists t<T:\quad
-\|G_t\|^2+
-\lambda^2C_RR_t
-\le
-\frac{4(\Psi_0-P_\star)}{\eta T}
-+
-\frac{4\,\mathrm{floor}}{\eta}.
-$$
-
-Thus persistent errors produce an explicit neighborhood rather than an
-unjustified zero-error limit.
-
-Lean files:
-
-- `OUSVRBLO/EndToEndCorollaries.lean`;
-- `OUSVRBLO/TrajectoryCertifiedProposalCorollaries.lean`;
-- `OUSVRBLO/JointCertificates.lean`;
-- `OUSVRBLO/PersistentErrorFloor.lean`.
 
 ## 12. Claim boundary
 
-The theorem is an interface theorem for a restricted/local fixed-penalty value
-surrogate. It does not prove that a concrete LLM/LoRA system automatically
-satisfies the stated smoothness, response regularity, residual-gradient,
-contraction, or proxy-calibration premises. It also does not prove global
-nonconvex lower optimality, original BLO KKT convergence, projected/stochastic
-main-variable correctness, extraction of a floating-point selector, or
-convergence of the iterates to a unique point.
+The theorem remains conditional on local model-specific interfaces:
+
+```text
+local smoothness and lower boundedness,
+restricted response regularity,
+residual-gradient control,
+proxy calibration,
+local quadratic growth / strong monotonicity / contraction where used.
+```
+
+It does not establish global lower-level optimality, original BLO KKT
+convergence, projected or stochastic main-variable correctness, or convergence
+of the iterates to a unique point.
