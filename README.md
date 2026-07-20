@@ -7,16 +7,28 @@ value surrogate under explicit analytic interfaces.
 
 ## Primary checked chain
 
-1. A safe base response and an accepted online response generate a common
-   residual envelope `Q`.
-2. Calibrated proxy comparison generates a nonnegative uncertainty-adjusted
-   gain `Gamma`.
-3. The single small-step condition `CR * beta ≤ theta / 4` implies all final
-   Lyapunov coefficient bounds.
-4. One-step descent and residual drift telescope to finite-horizon stationarity,
-   residual, and certified-gain budgets.
+```text
+safe base contraction + accepted-response tolerance
+  => common residual certificate envelope Q
 
-The exact enhanced budget contains
+asymmetric proxy calibration + acceptance margin
+  => nonnegative uncertainty-adjusted true gain Gamma
+
+smoothness + squared value-gradient error control
+  => inexact surrogate descent
+
+raw residual compatibility + Young's inequality + step-square control
+  => residual drift
+
+CR * beta <= theta / 4
+  => all advertised Lyapunov coefficient bounds
+
+one-step descent + drift + envelope contraction
+  => finite-horizon stationarity, residual, and gain budgets
+  => averaged, best-iterate, and bounded-budget asymptotic guarantees
+```
+
+The exact enhanced budget is
 
 ```text
 (eta / 4) * sum Gsq
@@ -25,20 +37,33 @@ The exact enhanced budget contains
   <= initial Lyapunov gap + accumulated interface errors,
 ```
 
-with
+where
 
 ```text
+Cgain = eta * lam^2 / 2 + 2 * alpha * Aeta * lam^2,
 eta * lam^2 / 2 <= Cgain <= 3/4 * eta * lam^2.
+```
+
+The manuscript parameterization is checked exactly:
+
+```text
+mu      = 1 / (sqrt 2 * lam),
+Aeta    = eta / (2 * sqrt 2 * lam) + LR * eta^2 / 2,
+betaEta = sqrt 2 * lam * eta + lam^2 * LR * eta^2.
 ```
 
 ## Claim boundary
 
-Lean checks the scalar coefficient accounting, safeguard closure, calibrated
-proxy algebra, finite-horizon telescoping, and averaged consequences. The
-repository does not prove that a real LLM/LoRA training system automatically
-satisfies the analytic interfaces. It also does not prove general nonconvex BLO
-global convergence, original BLO KKT convergence, or convergence of the
-iterates to a unique point.
+Lean checks coefficient accounting, residual safeguard closure, calibrated
+proxy algebra, Hilbert-space inexact-descent algebra, scalar residual-drift
+propagation, finite-horizon telescoping, averaged and best-iterate corollaries,
+and convergence of averages under a uniformly bounded accumulated budget.
+
+The repository does not prove that a real LLM/LoRA training system
+automatically satisfies local smoothness, residual-to-value-gradient control,
+or raw residual compatibility. It also does not prove general nonconvex BLO
+global convergence, original BLO KKT convergence, projected/stochastic training
+correctness, or convergence of the iterates to a unique point.
 
 The value-response model is restricted/local: an arbitrary local response is
 not identified with the global value function of the original nonconvex lower
@@ -55,9 +80,7 @@ lake build
 ```
 
 Run `lake update` only when intentionally refreshing and committing the locked
-dependency graph.
-
-To reject placeholder proofs, run:
+dependency graph. To reject placeholder proofs, run:
 
 ```bash
 bash scripts/check_no_placeholder.sh
@@ -65,22 +88,30 @@ bash scripts/check_no_placeholder.sh
 
 ## Main files
 
-- `OUSVRBLO/ParameterBounds.lean`: derives the Lyapunov coefficient bounds from
-  the drift parameterization and the small-step condition.
-- `OUSVRBLO/SafeguardCertificate.lean`: closes the safe-base/accepted-response
-  rule into a common residual envelope.
-- `OUSVRBLO/ProxyCertificate.lean`: converts asymmetric proxy calibration into
-  an uncertainty-adjusted true-error gain, including fallback as zero gain.
-- `OUSVRBLO/CertifiedSafety.lean`: public fallback-safe theorem whose final
-  coefficients are derived rather than assumed.
-- `OUSVRBLO/CertifiedGainDescent.lean`: exact and simplified certified-gain
-  Lyapunov budgets and averaged bounds.
+- `OUSVRBLO/ManuscriptParameters.lean`: exact manuscript `sqrt 2`
+  parameterization and constructor from S2.
+- `OUSVRBLO/ParameterBounds.lean`: all Lyapunov coefficient bounds from the
+  drift parameterization and the single small-step condition.
+- `OUSVRBLO/SafeguardCertificate.lean`: safe-base/accepted-response closure into
+  one residual envelope `Q`.
+- `OUSVRBLO/ProxyCertificate.lean`: asymmetric calibration and fallback closure
+  into the true nonnegative gain `Gamma`.
+- `OUSVRBLO/InexactDescent.lean`: Hilbert-space smoothness to safety and
+  gain-aware descent interfaces.
+- `OUSVRBLO/ResidualDrift.lean`: raw residual compatibility to safety and
+  gain-aware drift recursions.
+- `OUSVRBLO/AnalyticClosure.lean`: composed analytic fallback-safe theorem.
+- `OUSVRBLO/AnalyticGainClosure.lean`: composed analytic certified-gain theorem.
+- `OUSVRBLO/CertifiedSafety.lean`: public fallback-safe finite-horizon theorem.
+- `OUSVRBLO/CertifiedGainDescent.lean`: exact and simplified gain budgets.
+- `OUSVRBLO/FiniteTimeCorollaries.lean`: best-iterate stationarity and residual
+  guarantees.
+- `OUSVRBLO/Asymptotics.lean`: bounded-partial-sum and average-to-zero
+  corollaries for stationarity, residual, and certified gain.
 - `OUSVRBLO/SafetyDescent.lean`: reusable low-level scalar algebraic core.
-- `OUSVRBLO/ImprovementDescent.lean`: legacy nominal-improvement/error-budget
-  formulation retained for comparison.
-- `OUSVRBLO/LyapunovBudget.lean`: finite-horizon budget structures and averaged
-  consequences.
+- `OUSVRBLO/ImprovementDescent.lean`: legacy nominal-improvement formulation.
+- `OUSVRBLO/LyapunovBudget.lean`: budget structures and averaged consequences.
 - `OUSVRBLO/LocalSurrogate.lean`: restricted minimizer and value-gradient
   interface boundary.
-- `docs/OUSVR_BLO_CERTIFIED_THEORY.md`: revised theorem statement and proof map.
-- `docs/FORMALIZATION_SCOPE.md`: manuscript-to-Lean coverage boundary.
+- `docs/OUSVR_BLO_CERTIFIED_THEORY.md`: revised theorem and Lean theorem map.
+- `docs/FORMALIZATION_SCOPE.md`: precise manuscript-to-Lean coverage boundary.
