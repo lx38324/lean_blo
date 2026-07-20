@@ -31,6 +31,9 @@ structure AcceptedResponseSelector where
   rhoProp : ℕ → ℝ
   accept : ℕ → Bool
   Rbase_nonneg : ∀ t, 0 ≤ Rbase t
+  Rprop_nonneg : ∀ t, 0 ≤ Rprop t
+  eB_nonneg : ∀ t, 0 ≤ eB t
+  eProp_nonneg : ∀ t, 0 ≤ eProp t
   epsBase_nonneg : ∀ t, 0 ≤ epsBase t
   tauR_nonneg : ∀ t, 0 ≤ tauR t
   rhoB_nonneg : ∀ t, 0 ≤ rhoB t
@@ -60,6 +63,22 @@ def AcceptedResponseSelector.Ronline
 def AcceptedResponseSelector.eOnline
     (S : AcceptedResponseSelector) (t : ℕ) : ℝ :=
   if S.accept t = true then S.eProp t else S.eB t
+
+/-- The selected response residual remains nonnegative. -/
+theorem AcceptedResponseSelector.Ronline_nonneg
+    (S : AcceptedResponseSelector) (t : ℕ) :
+    0 ≤ S.Ronline t := by
+  cases hacc : S.accept t <;>
+    simp [AcceptedResponseSelector.Ronline, hacc,
+      S.Rbase_nonneg t, S.Rprop_nonneg t]
+
+/-- The selected true squared error remains nonnegative. -/
+theorem AcceptedResponseSelector.eOnline_nonneg
+    (S : AcceptedResponseSelector) (t : ℕ) :
+    0 ≤ S.eOnline t := by
+  cases hacc : S.accept t <;>
+    simp [AcceptedResponseSelector.eOnline, hacc,
+      S.eB_nonneg t, S.eProp_nonneg t]
 
 /--
 Accepted uncertainty-adjusted gain.  A rejected proposal contributes exactly
@@ -105,7 +124,12 @@ theorem AcceptedResponseSelector.safeguard_eps
     S.safeguardSystem.eps t = S.epsBase t + S.tauR t := by
   rfl
 
-/-- The explicit selector gives a sequence-level proxy certificate. -/
+/--
+The explicit selector gives a sequence-level proxy certificate.  On a fallback
+round the proxy fields below are proof-only exact witnesses equal to the true
+baseline error; they do not participate in the acceptance decision, which has
+already been made from the original proposal/base proxy data.
+-/
 def AcceptedResponseSelector.proxySequence
     (S : AcceptedResponseSelector) : ProxyGainSequence where
   eO := S.eOnline
