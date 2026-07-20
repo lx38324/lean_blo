@@ -55,8 +55,7 @@ theorem TrajectoryCertifiedProposalGainSystem.exists_objective_gradient_joint_ce
 
 /-- Summable-error same-iterate `O(1/T)` certificate stated using the actual
 objective gradient. -/
-theorem TrajectoryCertifiedProposalGainSystem.
-    exists_objective_gradient_joint_certificate_of_summable
+theorem TrajectoryCertifiedProposalGainSystem.exists_objective_gradient_joint_certificate_of_summable
     {E X : Type*}
     [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
     [NormedAddCommGroup X] [InnerProductSpace ℝ X]
@@ -79,8 +78,7 @@ theorem TrajectoryCertifiedProposalGainSystem.
 
 /-- The objective gradient norm converges pointwise to zero under summable
 certificate perturbations. -/
-theorem TrajectoryCertifiedProposalGainSystem.
-    objective_gradient_norm_tendsto_zero_of_summable
+theorem TrajectoryCertifiedProposalGainSystem.objective_gradient_norm_tendsto_zero_of_summable
     {E X : Type*}
     [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
     [NormedAddCommGroup X] [InnerProductSpace ℝ X]
@@ -100,8 +98,7 @@ theorem TrajectoryCertifiedProposalGainSystem.
     hepsBase htauR hb hd
 
 /-- Explicit squared objective-gradient and response-residual tolerance theorem. -/
-theorem TrajectoryCertifiedProposalGainSystem.
-    exists_objective_gradient_and_scaled_residual_le_of_summable
+theorem TrajectoryCertifiedProposalGainSystem.exists_objective_gradient_and_scaled_residual_le_of_summable
     {E X : Type*}
     [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
     [NormedAddCommGroup X] [InnerProductSpace ℝ X]
@@ -126,8 +123,7 @@ theorem TrajectoryCertifiedProposalGainSystem.
 /-- Standard `epsilon`-stationarity statement. The horizon is imposed at squared
 tolerance `epsilon^2`, hence the usual `O(1/epsilon^2)` dependence for gradient
 norm stationarity. -/
-theorem TrajectoryCertifiedProposalGainSystem.
-    exists_objective_gradient_norm_and_scaled_residual_le_of_summable
+theorem TrajectoryCertifiedProposalGainSystem.exists_objective_gradient_norm_and_scaled_residual_le_of_summable
     {E X : Type*}
     [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
     [NormedAddCommGroup X] [InnerProductSpace ℝ X]
