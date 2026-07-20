@@ -14,6 +14,7 @@ import OUSVRBLO.ProxySequenceCertificate
 import OUSVRBLO.AcceptedResponseSelector
 import OUSVRBLO.CertifiedProposalAcceptance
 import OUSVRBLO.ValueGradientErrorEmbedding
+import OUSVRBLO.RestrictedValueProposalData
 import OUSVRBLO.CertifiedGainDescent
 import OUSVRBLO.FiniteTimeCorollaries
 import OUSVRBLO.Asymptotics
