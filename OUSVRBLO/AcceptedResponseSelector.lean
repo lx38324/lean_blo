@@ -88,9 +88,9 @@ def AcceptedResponseSelector.safeguardSystem
     intro t
     cases hacc : S.accept t with
     | false =>
-        simp [AcceptedResponseSelector.Ronline, hacc, S.tauR_nonneg t]
+        simp [AcceptedResponseSelector.Ronline, S.tauR_nonneg t]
     | true =>
-        simpa [AcceptedResponseSelector.Ronline, hacc] using
+        simpa [AcceptedResponseSelector.Ronline] using
           S.proposal_residual_safe t hacc
 
 @[simp]
@@ -125,44 +125,44 @@ def AcceptedResponseSelector.proxySequence
   rhoO_nonneg := by
     intro t
     cases hacc : S.accept t <;>
-      simp [hacc, S.rhoProp_nonneg t]
+      simp [S.rhoProp_nonneg t]
   rhoB_nonneg := by
     intro t
     cases hacc : S.accept t <;>
-      simp [hacc, S.rhoB_nonneg t]
+      simp [S.rhoB_nonneg t]
   tauE_nonneg := by
     intro t
     cases hacc : S.accept t <;>
-      simp [hacc, S.tauE_nonneg t]
+      simp [S.tauE_nonneg t]
   calibO_abs := by
     intro t
     cases hacc : S.accept t with
     | false =>
-        simp [AcceptedResponseSelector.eOnline, hacc]
+        simp [AcceptedResponseSelector.eOnline]
     | true =>
-        simpa [AcceptedResponseSelector.eOnline, hacc] using
+        simpa [AcceptedResponseSelector.eOnline] using
           S.proposal_calib_abs t
   calibB_abs := by
     intro t
     cases hacc : S.accept t with
     | false =>
-        simp [hacc]
+        simp
     | true =>
-        simpa [hacc] using S.baseline_calib_abs t
+        simpa using S.baseline_calib_abs t
   proxy_improves := by
     intro t
     cases hacc : S.accept t with
     | false =>
-        simp [hacc]
+        simp
     | true =>
-        simpa [hacc] using S.proposal_proxy_improves t hacc
+        simpa using S.proposal_proxy_improves t hacc
   accepted_gain_nonneg := by
     intro t
     cases hacc : S.accept t with
     | false =>
-        simp [hacc]
+        simp
     | true =>
-        simpa [hacc] using S.proposal_gain_nonneg t hacc
+        simpa using S.proposal_gain_nonneg t hacc
 
 @[simp]
 theorem AcceptedResponseSelector.proxy_eO
@@ -171,12 +171,18 @@ theorem AcceptedResponseSelector.proxy_eO
   rfl
 
 @[simp]
+theorem AcceptedResponseSelector.proxy_eB
+    (S : AcceptedResponseSelector) (t : ℕ) :
+    S.proxySequence.eB t = S.eB t := by
+  rfl
+
+@[simp]
 theorem AcceptedResponseSelector.proxy_Gamma
     (S : AcceptedResponseSelector) (t : ℕ) :
     S.proxySequence.Gamma t = S.Gamma t := by
   cases hacc : S.accept t <;>
     simp [AcceptedResponseSelector.proxySequence,
-      AcceptedResponseSelector.Gamma, ProxyGainSequence.Gamma, hacc]
+      AcceptedResponseSelector.Gamma, ProxyGainSequence.Gamma]
 
 /-- Accepted proposal or fallback always improves true error by the selected gain. -/
 theorem AcceptedResponseSelector.true_error_improves
@@ -202,8 +208,7 @@ theorem AcceptedResponseSelector.r2_certified
     (hbaseline : ∀ t, S.eB t ≤ CR * S.safeguardSystem.Q t + b t)
     (t : ℕ) :
     S.eOnline t ≤ CR * S.safeguardSystem.Q t + b t - S.Gamma t := by
-  have h := (S.proxyResidualCertificate CR b hbaseline).r2_certified t
-  simpa using h
+  nlinarith [S.true_error_improves t, hbaseline t]
 
 /--
 If the inexact-gradient vector is dominated by the selected response error, the
@@ -219,9 +224,9 @@ theorem AcceptedResponseSelector.certified_error_bound
     ‖Err t‖ ^ 2 ≤
       lam ^ 2 *
         (CR * S.safeguardSystem.Q t + b t - S.Gamma t) := by
-  have h := (S.proxyResidualCertificate CR b hbaseline).
-    certified_error_bound lam Err hErr t
-  simpa using h
+  have hr2 := S.r2_certified CR b hbaseline t
+  have hscaled := mul_le_mul_of_nonneg_left hr2 (sq_nonneg lam)
+  exact (hErr t).trans hscaled
 
 end
 
