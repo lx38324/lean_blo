@@ -17,6 +17,7 @@ import OUSVRBLO.AcceptedResponseSelector
 import OUSVRBLO.CertifiedProposalAcceptance
 import OUSVRBLO.CertifiedGainFeasibility
 import OUSVRBLO.ValueGradientErrorEmbedding
+import OUSVRBLO.ProxyCalibrationFromGradient
 import OUSVRBLO.RestrictedValueProposalData
 import OUSVRBLO.CertifiedGainDescent
 import OUSVRBLO.FiniteTimeCorollaries
