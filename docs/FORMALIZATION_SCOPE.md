@@ -45,6 +45,28 @@ eta * lam^2 / 2 <= Cgain <= 3/4 * eta * lam^2.
   `ManuscriptDriftParameters.parameterization_Aeta`,
   `ManuscriptDriftParameters.parameterization_beta`, and
   `ManuscriptDriftParameters.toSafetyParameters`.
+- Restricted response minimizer and envelope layer:
+  `RestrictedValueResponseInterface.response_isMinimizer`,
+  `RestrictedValueResponseInterface.eq_response_of_quadratic_growth`,
+  `hasFDerivAt_branchValue_of_stationary_response`, and
+  `RestrictedValueResponseInterface.hasFDerivAt_value_of_stationary_response`.
+- Response-distance and objective-gap R2 certificates:
+  `gradient_error_sq_le_of_lipschitz_and_error_bound`,
+  `RestrictedValueGradientInterface.r2_of_lipschitz_and_error_bound`,
+  `RestrictedValueResponseInterface.distance_sq_le_gap_div`, and
+  `RestrictedValueGradientInterface.r2_of_quadratic_growth`.
+- Computable lower-gradient residual certificate:
+  `distance_sq_le_gradient_residual_of_strong_monotonicity`,
+  `eq_of_strong_monotonicity_and_stationarity`, and
+  `value_gradient_error_sq_le_lower_gradient_residual`.
+- Proximal response certificate:
+  `proximalLowerGradient_inner_sub`,
+  `proximalLowerGradient_strong_monotone`,
+  `proximalLowerGradient_stationary_unique`, and
+  `value_gradient_error_sq_le_proximal_residual`.
+- Concrete non-vacuous restricted response model:
+  the `ScalarQuadraticResponse` quadratic-growth, uniqueness, exact R2, and
+  certified R2 theorems.
 - Residual safeguard closure:
   `ResidualSafeguardSystem.base_le_envelope`,
   `ResidualSafeguardSystem.online_le_envelope`, and
@@ -96,7 +118,11 @@ eta * lam^2 / 2 <= Cgain <= 3/4 * eta * lam^2.
   `CertifiedSafetySystem.accumulatedRhs_le_summableRhs`,
   `CertifiedGainStepSystem.accumulatedRhs_le_summableRhs`, and the five direct
   `average_tendsto_zero_of_summable` corollaries.
-- Restricted value-response boundary:
+- Explicit summable-error rates:
+  the safety and certified-gain `average_bound_of_summable`, joint
+  `gradient_gain_average_bound_of_summable`, and best-iterate corollaries in
+  `SummableRates.lean`.
+- Restricted value-response interface boundary:
   `RestrictedValueResponseInterface` and
   `RestrictedValueGradientInterface`.
 
@@ -106,6 +132,19 @@ Lean checks:
 
 - the exact manuscript definitions of `mu`, `Aeta`, and `betaEta` agree with the
   generic Young-inequality parameterization;
+- positive quadratic growth makes the represented restricted minimizer unique;
+- the chain rule and lower stationarity remove the derivative of a differentiable
+  response branch from the local value derivative;
+- response-gradient Lipschitzness plus a distance error bound implies the R2
+  squared value-gradient error interface;
+- quadratic growth gives an objective-gap version of R2;
+- strong monotonicity gives response uniqueness and an R2 certificate using the
+  computable squared lower-gradient residual;
+- a quadratic proximal term dominating a local hypomonotonicity constant produces
+  strong monotonicity with modulus `rho - curvature` and the corresponding R2
+  constant `L^2 / (rho - curvature)^2`;
+- a scalar quadratic model satisfies the restricted minimizer, quadratic-growth,
+  and value-gradient error interfaces simultaneously;
 - the single small-step condition implies all coefficient inequalities used by
   the Lyapunov proof;
 - safe fallback and residual acceptance produce one common contraction
@@ -124,26 +163,31 @@ Lean checks:
 - uniformly bounded accumulated right-hand sides imply bounded stationarity,
   residual, and gain partial sums and hence average convergence to zero;
 - summability of the nonnegative perturbation sequences supplies the required
-  uniform accumulated-budget bound and therefore the corresponding asymptotic
-  conclusions directly.
+  uniform accumulated-budget bound, explicit `O(1 / T)` rates, and the
+  corresponding asymptotic conclusions directly.
 
 ## Remaining analytic boundary
 
-The following remain explicit interfaces rather than globally proved facts for
-real LLM/LoRA systems:
+The following remain explicit local interfaces rather than globally proved facts
+for real LLM/LoRA systems:
 
 1. local smoothness and lower boundedness of the concrete fixed-penalty
    surrogate;
-2. existence and regularity of the restricted lower response;
-3. a general nonconvex Danskin/envelope theorem;
-4. residual-to-value-gradient error control for a concrete neural model;
-5. the raw residual-compatibility inequality for a full stochastic training
+2. a trajectory region on which quadratic growth, hypomonotonicity, or strong
+   monotonicity holds with calibrated constants;
+3. differentiability and regularity of the selected restricted response branch;
+4. a general nonsmooth or set-valued nonconvex Danskin/envelope theorem;
+5. calibration of the residual-to-value-gradient constants for a concrete
+   neural model;
+6. the raw residual-compatibility inequality for a full stochastic training
    system;
-6. projected or stochastic main-variable updates;
-7. original BLO KKT convergence or general nonconvex BLO global convergence.
+7. projected or stochastic main-variable updates;
+8. original BLO KKT convergence or general nonconvex BLO global convergence.
 
-Thus the checked result is an interface theorem. It establishes that, when the
-listed analytic premises hold, arbitrary learned proposals can be embedded
-through a certifiable fallback without invalidating the finite-horizon
+Thus the checked result remains an interface theorem. It establishes that, when
+the listed local analytic premises hold, arbitrary learned proposals can be
+embedded through a certifiable fallback without invalidating the finite-horizon
 stationarity budget, and calibrated improvements enter that budget as a true
-nonnegative gain.
+nonnegative gain.  The new response-certificate layer verifies several concrete
+sufficient conditions for those interfaces without claiming global neural lower
+optimality.
