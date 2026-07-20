@@ -1,62 +1,67 @@
 # OUSVR-BLO Lean formalization
 
-This repository formalizes the certificate-sensitive proof stack of a
-safeguarded online value-anchor theorem for fixed-penalty value-function BLO.
-The primary checked claim is finite-horizon stationarity of a restricted/local
-value surrogate under explicit analytic and acceptance certificates.
+This repository formalizes a certificate-sensitive theorem stack for a
+safeguarded online value-anchor method applied to a restricted/local
+fixed-penalty value-function BLO surrogate.
+
+The machine-learning-facing statement is: a learned updater may propose an
+arbitrary response, but only a response passing explicit residual-safety and
+calibrated value-gradient tests is used.  A rejected proposal falls back to the
+safe base response with zero certified gain.
 
 ## Primary checked chain
 
 ```text
 restricted minimizer + differentiable stationary response branch
-  => local value derivative equals the x-partial derivative
+  => represented local value gradient
 
-quadratic growth, strong monotonicity, or a contractive response map
-  => unique represented response + response-distance error bound
+quadratic growth / strong monotonicity / proximal domination /
+contractive response map
+  => response-distance and value-gradient error certificates
 
-response-gradient Lipschitzness
-  => residual controls value-gradient approximation error
+restricted value-gradient interface + feasible base/proposal responses
+  => actual base/proposal partial-gradient sequences
 
-proximal regularization dominating local negative curvature
-  => strong monotonicity of the regularized lower-gradient residual
+proposal residual + calibrated proxy statistics
+  => proof-level explicit accept/fallback selector
+  => selected residual Ronline, selected true error eOnline,
+     and nonnegative uncertainty-adjusted gain Gamma
 
-raw learned proposal statistics
-  + residual-safety test
-  + proxy-improvement test
-  + nonnegative calibrated-margin test
-  => explicit accept/fallback decision
-  => selected residual Ronline and selected gain Gamma
+safe base contraction + residual acceptance tolerance
+  => Q = Rbase + tauR
+  => Rbase <= Q, Ronline <= Q,
+     Q <= (1-theta) R + epsBase + tauR
 
-safe base contraction + accepted-response tolerance
-  => common residual certificate envelope Q
-
-baseline residual control + asymmetric proxy calibration
+base residual-to-error control + proxy calibration
   => eOnline <= CR * Q + b - Gamma
-  => certified squared inexact-gradient error bound
+  => 0 <= Gamma <= eBase
+  => 0 <= CR * Q + b - Gamma
 
-actual trajectory update
-  + local surrogate smoothness before substitution
-  + contractive upper-block map
-  => inexact surrogate descent and displacement control
+selected value-gradient vector + isometric ambient embedding
+  => ||Err||^2 = lam^2 * eOnline
+
+actual trajectory update + objective smoothness before substitution
+  + contractive upper-variable block map
+  => inexact descent and upper-block displacement control
 
 residual smoothness + squared residual-gradient control
-  => raw residual compatibility
-  => safety and gain-aware residual drift
+  => gain-aware residual drift
 
 CR * beta <= theta / 4
-  => all advertised Lyapunov coefficient bounds
+  => every advertised Lyapunov coefficient bound
 
 all preceding certificates
-  => exact finite-horizon stationarity, residual, and gain budget
-  => same-iterate O(1/T), best-iterate, and pointwise consequences
+  => finite-horizon stationarity/residual/gain budget
+  => same-iterate O(1/T), O(epsilon^-2) gradient-norm complexity,
+     and pointwise consequences under summable perturbations
 ```
 
 The exact enhanced budget is
 
 ```text
 (eta / 4) * sum Gsq
-  + (eta * lam^2 * CR / 4) * sum R
   + Cgain * sum Gamma
+  + (eta * lam^2 * CR / 4) * sum R
   <= initial Lyapunov gap + accumulated certificate errors,
 ```
 
@@ -75,29 +80,58 @@ Aeta    = eta / (2 * sqrt 2 * lam) + LR * eta^2 / 2,
 betaEta = sqrt 2 * lam * eta + lam^2 * LR * eta^2.
 ```
 
-## Claim boundary
+For summable certificate perturbations, one and the same iterate satisfies
 
-Lean checks coefficient accounting, restricted-response uniqueness under stated
-local certificates, the differentiable branch-envelope identity,
-residual-to-value-gradient sufficient conditions, strong-monotonicity,
-proximal and contraction-residual accounting, explicit proposal selection,
-residual safeguard closure, sequence-level calibrated proxy algebra,
-trajectory substitution, Hilbert-space inexact descent,
-residual-smoothness-to-drift propagation, finite-horizon telescoping,
-same-iterate and best-iterate certificates, explicit summable-error rates, and
-pointwise convergence of the stationarity measure and response residual.
+```text
+exists t < T,
+  ||G t||^2 + lam^2 * CR * R t
+    <= 4 * summableRhs / (eta * T).
+```
 
-The repository does not prove that a real LLM/LoRA training system automatically
-satisfies the local smoothness, hypomonotonicity, contraction, response
-regularity, proxy calibration, or residual-gradient premises. It also does not
-prove general nonconvex BLO global convergence, original BLO KKT convergence,
-projected/stochastic main-variable correctness, or convergence of the iterates
-to a unique point.
+If `G t` is certified as the actual objective gradient and
 
-The value-response model is restricted/local: an arbitrary local response is
+```text
+4 * summableRhs <= epsilon^2 * eta * T,
+```
+
+then some `t < T` satisfies
+
+```text
+||gradient objective (z t)|| <= epsilon,
+R t <= epsilon^2 / (lam^2 * CR).
+```
+
+Thus the checked gradient-norm stationarity dependence is the standard
+`O(epsilon^-2)`.
+
+## Semantic and claim boundary
+
+Lean verifies the scalar coefficient accounting, explicit selector algebra,
+restricted-response sufficient conditions, trajectory substitution,
+fixed-penalty gradient composition, finite-horizon telescoping, same-iterate
+rates, and pointwise consequences.
+
+The selector built from inequalities over real numbers is a proof-level object in
+a `noncomputable` section.  The repository does not claim extraction of a
+floating-point acceptance implementation.
+
+The theorem uses one common affine residual scale `CR * Q + b`.  This need not
+mean that value-gradient error and residual-gradient drift have identical raw
+constants: Lean verifies that two separately calibrated nonnegative affine
+scales can be dominated by a common maximum coefficient and maximum bias, and
+that the pointwise maximum of two nonnegative summable biases remains summable.
+
+The repository does **not** prove that a concrete LLM/LoRA training system
+automatically satisfies local smoothness, response regularity, calibration,
+strong monotonicity, contraction, or residual-gradient premises.  It also does
+not prove projected/stochastic main-variable correctness, global nonconvex lower
+optimality, original BLO KKT convergence, or convergence of the iterates to a
+unique point.
+
+The value-response model is restricted/local.  An arbitrary local response is
 not identified with the global value function of the original nonconvex lower
-problem. The local branch-envelope result is not a general nonsmooth or
-set-valued Danskin theorem.
+problem, and the branch-envelope result is not a general nonsmooth or set-valued
+Danskin theorem.
 
 ## Build
 
@@ -107,93 +141,86 @@ Install `elan`, then use the committed `lean-toolchain` and
 ```bash
 lake exe cache get
 lake build
-```
-
-Run `lake update` only when intentionally refreshing and committing the locked
-dependency graph. To reject placeholder proofs, run:
-
-```bash
 bash scripts/check_no_placeholder.sh
 ```
 
+Run `lake update` only when intentionally refreshing and committing the locked
+dependency graph.
+
 ## Main files
 
-- `OUSVRBLO/ManuscriptParameters.lean`: exact manuscript `sqrt 2`
-  parameterization and constructor from S2.
-- `OUSVRBLO/ParameterBounds.lean`: all Lyapunov coefficient bounds from the
-  drift parameterization and the single small-step condition.
-- `OUSVRBLO/SafeguardCertificate.lean`: safe-base/accepted-response closure into
-  one residual envelope `Q`.
-- `OUSVRBLO/ProxyCertificate.lean`: scalar asymmetric calibration and fallback
-  closure into the true nonnegative gain `Gamma`.
-- `OUSVRBLO/ProxySequenceCertificate.lean`: sequence proxy comparison and
-  baseline residual control produce the certified inexact-gradient error bound.
-- `OUSVRBLO/AcceptedResponseSelector.lean`: explicit proposal/fallback branch,
-  selected residual, selected true error, and zero-gain fallback.
-- `OUSVRBLO/CertifiedProposalAcceptance.lean`: defines the acceptance decision
-  from residual safety, proxy improvement, and calibrated-margin nonnegativity.
-- `OUSVRBLO/InexactDescent.lean`: Hilbert-space smoothness to safety and
-  gain-aware descent interfaces.
-- `OUSVRBLO/ResidualSmoothnessCertificate.lean`: residual smoothness, squared
-  residual-gradient control, and displacement control produce raw drift.
-- `OUSVRBLO/ResidualDrift.lean`: raw residual compatibility to safety and
-  gain-aware drift recursions.
-- `OUSVRBLO/AnalyticClosure.lean`: composed analytic fallback-safe theorem.
-- `OUSVRBLO/AnalyticGainClosure.lean`: composed analytic certified-gain theorem.
-- `OUSVRBLO/SmoothResidualAnalyticClosure.lean`: removes `raw_drift` as a public
-  premise by composing residual smoothness directly into both analytic systems.
-- `OUSVRBLO/EndToEndCertifiedGain.lean`: combines safeguard, sequence proxy,
-  local surrogate smoothness, and residual smoothness into the gain budget.
-- `OUSVRBLO/SelectedEndToEndCertifiedGain.lean`: starts from the actual base and
-  selected-response residuals rather than pre-enlarged envelope premises.
-- `OUSVRBLO/CanonicalSelectedEndToEndCertifiedGain.lean`: defines
-  `H = sqrt (CR * Q + b)` and `stepNorm = norm (G + Err)` internally.
-- `OUSVRBLO/TrajectoryCertifiedProposalGain.lean`: derives the canonical theorem
-  from the actual deterministic trajectory update, smoothness before
-  substitution, and a contractive upper-variable block map.
-- `OUSVRBLO/EndToEndCorollaries.lean`: same-iterate and pointwise consequences
-  for the certificate-facing end-to-end system.
-- `OUSVRBLO/TrajectoryCertifiedProposalCorollaries.lean`: trajectory-facing
-  same-iterate `O(1/T)` and pointwise stationarity/residual/gain consequences.
-- `OUSVRBLO/CertifiedSafety.lean`: public fallback-safe finite-horizon theorem.
-- `OUSVRBLO/CertifiedGainDescent.lean`: exact and simplified gain budgets.
-- `OUSVRBLO/FiniteTimeCorollaries.lean`: best-iterate stationarity and residual
-  guarantees.
-- `OUSVRBLO/JointCertificates.lean`: same-iterate stationarity/residual
-  certificates and exact gain-budget density accounting.
-- `OUSVRBLO/Asymptotics.lean`: bounded-partial-sum and average-to-zero
-  corollaries for stationarity, residual, and certified gain.
-- `OUSVRBLO/SummableCorollaries.lean`: derives the bounded accumulated budget
-  from summable nonnegative perturbations.
-- `OUSVRBLO/SummableRates.lean`: explicit `O(1 / T)` average and best-iterate
-  bounds under summable perturbations.
-- `OUSVRBLO/PointwiseAsymptotics.lean`: summability and pointwise convergence of
-  stationarity, residual, and gain sequences.
-- `OUSVRBLO/AnalyticPointwise.lean`: converts squared stationarity convergence
-  into `norm G_t -> 0` for the Hilbert-space analytic systems.
-- `OUSVRBLO/LocalSurrogate.lean`: restricted minimizer and abstract
-  value-gradient interface boundary.
-- `OUSVRBLO/RestrictedEnvelope.lean`: quadratic-growth uniqueness and local
-  differentiable branch-envelope theorem.
-- `OUSVRBLO/ResponseErrorBound.lean`: response-distance and objective-gap
-  sufficient conditions for R2.
-- `OUSVRBLO/StrongMonotonicityCertificate.lean`: lower-gradient residual error
-  bounds and response uniqueness from strong monotonicity.
-- `OUSVRBLO/ProximalResponseCertificate.lean`: proximal regularization dominates
-  local negative curvature and produces a computable R2 residual certificate.
-- `OUSVRBLO/ContractionResidualCertificate.lean`: contractive fixed-point or
-  projected-response residual gives response-distance and R2 certificates.
-- `OUSVRBLO/QuadraticResponseExample.lean`: concrete scalar model showing the
-  restricted response and R2 assumptions are jointly satisfiable.
-- `docs/OUSVR_BLO_CERTIFIED_THEORY.md`: revised theorem and Lean theorem map.
-- `docs/END_TO_END_CERTIFIED_THEOREM.md`: certificate-facing theorem and
-  finite-time consequence map.
-- `docs/EXPLICIT_ACCEPTANCE_AND_CANONICAL_THEOREM.md`: explicit accept/fallback
-  proof, natural base-residual interface, and canonical auxiliary definitions.
-- `docs/TRAJECTORY_CERTIFICATE_CLOSURE.md`: actual-update and pre-substitution
-  smoothness closure into the canonical theorem.
-- `docs/RESTRICTED_RESPONSE_CERTIFICATES.md`: local response, envelope, and R2
-  certificate derivations.
-- `docs/FINITE_TIME_AND_POINTWISE_CERTIFICATES.md`: same-iterate, explicit-rate,
-  and pointwise consequence map.
-- `docs/FORMALIZATION_SCOPE.md`: precise manuscript-to-Lean coverage boundary.
+### Certificate and response layers
+
+- `LocalSurrogate.lean`: restricted minimizer and abstract value-gradient
+  interface.
+- `RestrictedEnvelope.lean`: quadratic-growth uniqueness and differentiable
+  stationary-branch envelope identity.
+- `ResponseErrorBound.lean`: response-distance and objective-gap R2 sufficient
+  conditions.
+- `StrongMonotonicityCertificate.lean`: response uniqueness and lower-gradient
+  residual bounds.
+- `ProximalResponseCertificate.lean`: proximal regularization dominates local
+  negative curvature.
+- `ContractionResidualCertificate.lean`: fixed-point/projected-response residual
+  certificates.
+- `RestrictedValueProposalData.lean`: generates base/proposal gradient data
+  directly from a restricted value-gradient interface and feasible responses.
+- `QuadraticResponseExample.lean`: concrete non-vacuous scalar model.
+
+### Proposal, proxy, and safeguard layers
+
+- `SafeguardCertificate.lean`: common residual envelope.
+- `ProxyCertificate.lean` and `ProxySequenceCertificate.lean`: calibrated scalar
+  and sequence gain certificates.
+- `AcceptedResponseSelector.lean`: explicit accepted/fallback branch and selected
+  residual/error/gain.
+- `CertifiedProposalAcceptance.lean`: constructs the Boolean decision from the
+  three certificate tests.
+- `CertifiedGainFeasibility.lean`: proves `0 <= Gamma <= eBase` and nonnegativity
+  of the gain-aware error scale.
+- `ValueGradientErrorEmbedding.lean`: defines true errors from value-gradient
+  vectors and proves the exact ambient error norm identity.
+- `CommonResidualScale.lean`: dominates independently calibrated affine residual
+  scales by one common scale while preserving summability.
+
+### Analytic and Lyapunov layers
+
+- `ManuscriptParameters.lean` and `ParameterBounds.lean`: exact constants and all
+  coefficient bounds from the single small-step condition.
+- `InexactDescent.lean`: Hilbert-space inexact descent.
+- `ResidualSmoothnessCertificate.lean` and `ResidualDrift.lean`: residual
+  smoothness to gain-aware drift.
+- `CertifiedSafety.lean` and `CertifiedGainDescent.lean`: public scalar safety and
+  gain budgets.
+- `AnalyticClosure.lean`, `AnalyticGainClosure.lean`, and
+  `SmoothResidualAnalyticClosure.lean`: composed analytic systems.
+- `EndToEndCertifiedGain.lean`, `SelectedEndToEndCertifiedGain.lean`, and
+  `CanonicalSelectedEndToEndCertifiedGain.lean`: certificate-facing closure with
+  increasingly natural public assumptions.
+
+### Trajectory and gradient-semantics layers
+
+- `TrajectoryCertifiedProposalGain.lean`: derives the theorem from the actual
+  deterministic update and pre-substitution smoothness.
+- `ValueGradientTrajectory.lean`: defines the inexact update error from the
+  selected value-gradient approximation.
+- `TrajectoryGradientSemantics.lean`: identifies `G t` with the actual objective
+  gradient when a local `HasGradientAt` certificate is supplied.
+- `FixedPenaltyGradientSemantics.lean`: composes gradients for
+  `outer + lam * (lower - value)` and generates the trajectory gradient
+  certificate from its components.
+
+### Finite-time and asymptotic layers
+
+- `FiniteTimeCorollaries.lean`, `JointCertificates.lean`,
+  `SummableCorollaries.lean`, and `SummableRates.lean`: averaged, best-iterate,
+  same-iterate, and explicit-rate results.
+- `IterationComplexity.lean` and `TrajectoryIterationComplexity.lean`: explicit
+  tolerance horizons and `O(epsilon^-2)` gradient-norm complexity.
+- `PointwiseAsymptotics.lean`, `AnalyticPointwise.lean`,
+  `EndToEndCorollaries.lean`, and `TrajectoryCertifiedProposalCorollaries.lean`:
+  summability and pointwise stationarity/residual/gain conclusions.
+
+The current mathematical statement and theorem map are in
+`docs/OUSVR_BLO_CERTIFIED_THEORY.md`; the exact coverage boundary is in
+`docs/FORMALIZATION_SCOPE.md`.
