@@ -92,34 +92,23 @@ theorem TrajectoryCertifiedProposalGainSystem.smooth_step
       - S.driftParameters.eta * ⟪S.G t, S.G t + S.Err t⟫_ℝ
       + S.LP * S.driftParameters.eta ^ 2 / 2 *
           ‖S.G t + S.Err t‖ ^ 2 := by
-  have hs := S.objective_smooth_step t
-  rw [S.update_displacement t] at hs
   have heta : 0 ≤ S.driftParameters.eta :=
     le_of_lt S.driftParameters.eta_pos
-  have hinner :
-      ⟪S.G t,
-        -S.driftParameters.eta • (S.G t + S.Err t)⟫_ℝ =
-        -S.driftParameters.eta *
-          ⟪S.G t, S.G t + S.Err t⟫_ℝ := by
-    simp
-  have hnorm :
-      ‖-S.driftParameters.eta • (S.G t + S.Err t)‖ ^ 2 =
-        S.driftParameters.eta ^ 2 * ‖S.G t + S.Err t‖ ^ 2 := by
-    simp [norm_smul, abs_of_nonneg heta]
-  rw [hinner, hnorm] at hs
   calc
     S.objective (S.z (t + 1))
         ≤ S.objective (S.z t)
-          + (-S.driftParameters.eta *
-              ⟪S.G t, S.G t + S.Err t⟫_ℝ)
-          + S.LP / 2 *
-              (S.driftParameters.eta ^ 2 *
-                ‖S.G t + S.Err t‖ ^ 2) := hs
+          + ⟪S.G t, S.z (t + 1) - S.z t⟫_ℝ
+          + S.LP / 2 * ‖S.z (t + 1) - S.z t‖ ^ 2 :=
+            S.objective_smooth_step t
     _ = S.objective (S.z t)
           - S.driftParameters.eta *
               ⟪S.G t, S.G t + S.Err t⟫_ℝ
           + S.LP * S.driftParameters.eta ^ 2 / 2 *
-              ‖S.G t + S.Err t‖ ^ 2 := by ring
+              ‖S.G t + S.Err t‖ ^ 2 := by
+          rw [S.update_displacement t]
+          simp only [real_inner_smul_right, norm_smul, Real.norm_eq_abs]
+          rw [abs_neg, abs_of_nonneg heta]
+          ring
 
 /-- The upper-variable displacement bound follows from the trajectory update and
 contractivity of the upper-block projection. -/
@@ -139,7 +128,7 @@ theorem TrajectoryCertifiedProposalGainSystem.displacement_bound
     _ = ‖-S.driftParameters.eta • (S.G t + S.Err t)‖ := by
           rw [S.update_displacement t]
     _ = S.driftParameters.eta * ‖S.G t + S.Err t‖ := by
-          simp [norm_smul, abs_of_nonneg heta]
+          rw [norm_smul, Real.norm_eq_abs, abs_neg, abs_of_nonneg heta]
 
 /-- Package the certificate-generated selector and trajectory facts into the
 canonical highest-level theorem. -/
@@ -205,8 +194,10 @@ theorem TrajectoryCertifiedProposalGainSystem.public_Gamma
     (S : TrajectoryCertifiedProposalGainSystem E X) :
     S.toCertifiedGainStepSystem.Gamma =
       (S.proposal.toAcceptedResponseSelector).Gamma := by
-  simpa [TrajectoryCertifiedProposalGainSystem.toCertifiedGainStepSystem] using
-    S.toCanonicalSystem.toSelectedSystem.public_Gamma
+  change
+    S.toCanonicalSystem.toSelectedSystem.toCertifiedGainStepSystem.Gamma =
+      S.toCanonicalSystem.selector.Gamma
+  exact S.toCanonicalSystem.toSelectedSystem.public_Gamma
 
 /-- Exact finite-horizon theorem from the pre-substitution smoothness premise and
 certificate-generated proposal decision. -/
