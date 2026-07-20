@@ -35,9 +35,9 @@ def valueGradientInterface (k : ℝ) : RestrictedValueGradientInterface where
     intro x
     simp
   response_minimizes := by
-    intro x xi hxi
-    simp only [h, response]
-    positivity
+    intro x xi _
+    dsimp [h, response]
+    nlinarith [sq_nonneg (xi - k * x)]
   value_eq_response := by
     intro x
     simp [v, h, response]
@@ -52,31 +52,41 @@ def valueGradientInterface (k : ℝ) : RestrictedValueGradientInterface where
 theorem quadratic_growth (k x xi : ℝ) :
     (1 / 2 : ℝ) * dist xi (response k x) ^ 2 ≤
       h k x xi - v k x := by
-  simp [h, response, v, Real.dist_eq, sq_abs]
+  rw [Real.dist_eq]
+  simp only [h, response, v, sub_zero, sq_abs]
+  ring_nf
 
 /-- The represented response is the unique exact restricted minimizer. -/
 theorem unique_minimizer (k x xi : ℝ)
-    (hxi : (valueGradientInterface k).toRestrictedValueResponseInterface.IsMinimizer x xi) :
+    (hxi :
+      (valueGradientInterface k).toRestrictedValueResponseInterface.IsMinimizer
+        x xi) :
     xi = response k x := by
-  apply (valueGradientInterface k).toRestrictedValueResponseInterface.
-    eq_response_of_quadratic_growth (1 / 2) (by norm_num)
-  · intro x' xi' hmem
-    have hq := quadratic_growth k x' xi'
-    simpa [valueGradientInterface, h, response, v] using hq
-  · exact hxi
+  refine RestrictedValueResponseInterface.eq_response_of_quadratic_growth
+    (valueGradientInterface k).toRestrictedValueResponseInterface
+    (1 / 2) (by norm_num) ?_ hxi
+  intro x' xi' _
+  have hq := quadratic_growth k x' xi'
+  simpa [valueGradientInterface, h, response, v] using hq
+
+/-- Exact norm identity behind response-Lipschitzness. -/
+theorem gradXH_error_norm_eq (k x xi : ℝ) :
+    ‖gradXH k x xi - gradXH k x (response k x)‖ =
+      |k| * dist xi (response k x) := by
+  rw [Real.dist_eq]
+  simp [gradXH, response, Real.norm_eq_abs]
 
 /-- The upper/value-gradient map is Lipschitz in the response with constant `|k|`. -/
 theorem gradXH_lipschitz (k x xi : ℝ) :
     ‖gradXH k x xi - gradXH k x (response k x)‖ ≤
       |k| * dist xi (response k x) := by
-  simp [gradXH, response, Real.norm_eq_abs, Real.dist_eq, abs_mul]
+  rw [gradXH_error_norm_eq]
 
 /-- Exact value-gradient error identity for the quadratic model. -/
 theorem gradient_error_sq_eq (k x xi : ℝ) :
     ‖gradXH k x xi - gradXH k x (response k x)‖ ^ 2 =
       k ^ 2 * dist xi (response k x) ^ 2 := by
-  simp [gradXH, response, Real.norm_eq_abs, Real.dist_eq, abs_mul, sq_abs]
-  ring
+  rw [gradXH_error_norm_eq, mul_pow, sq_abs]
 
 /--
 The residual-to-value-gradient inequality is non-vacuous: in this concrete model
@@ -84,28 +94,27 @@ the squared gradient error is exactly `2 * k^2` times the restricted objective
 gap.
 -/
 theorem exact_r2_gap (k x xi : ℝ) :
-    ‖(valueGradientInterface k).gradXH x xi -
-        (valueGradientInterface k).gradV x‖ ^ 2 =
-      2 * k ^ 2 *
-        ((valueGradientInterface k).h x xi -
-          (valueGradientInterface k).v x) := by
-  simp [valueGradientInterface, gradXH, response, h, v,
-    Real.norm_eq_abs, abs_mul, sq_abs]
+    ‖gradXH k x xi - gradXH k x (response k x)‖ ^ 2 =
+      2 * k ^ 2 * (h k x xi - v k x) := by
+  rw [gradient_error_sq_eq]
+  rw [Real.dist_eq]
+  simp only [h, response, v, sub_zero, sq_abs]
   ring
 
-/-- The generic quadratic-growth/Lipschitz theorem recovers the model's R2 form. -/
+/-- The generic quadratic-growth/Lipschitz argument recovers the same R2 scale. -/
 theorem certified_r2_gap (k x xi : ℝ) :
-    ‖(valueGradientInterface k).gradXH x xi -
-        (valueGradientInterface k).gradV x‖ ^ 2 ≤
-      ((|k| : ℝ) ^ 2 / (1 / 2 : ℝ)) *
-        ((valueGradientInterface k).h x xi -
-          (valueGradientInterface k).v x) := by
-  apply (valueGradientInterface k).r2_of_quadratic_growth
-    (1 / 2) |k| (by norm_num) (abs_nonneg k)
-  · intro x' xi' hmem
-    exact quadratic_growth k x' xi'
-  · simp
-  · exact gradXH_lipschitz k x xi
+    ‖gradXH k x xi - gradXH k x (response k x)‖ ^ 2 ≤
+      2 * |k| ^ 2 * (h k x xi - v k x) := by
+  have herror :
+      dist xi (response k x) ^ 2 ≤
+        2 * (h k x xi - v k x) + 0 := by
+    have hq := quadratic_growth k x xi
+    nlinarith
+  have hbound := gradient_error_sq_le_of_lipschitz_and_error_bound
+    (gradXH k x) xi (response k x) |k| 2
+      (h k x xi - v k x) 0 (abs_nonneg k)
+      (gradXH_lipschitz k x xi) herror
+  nlinarith
 
 end ScalarQuadraticResponse
 
