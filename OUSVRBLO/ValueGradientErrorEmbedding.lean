@@ -122,11 +122,11 @@ theorem ValueGradientProposalData.selector_eOnline
           (if S.toCertifiedProposalData.accept t = true then
             S.gradProp t
           else S.gradBase t)‖ ^ 2
-  cases hacc : S.toCertifiedProposalData.accept t with
+  cases S.toCertifiedProposalData.accept t with
   | false =>
-      simp [hacc, ValueGradientProposalData.eBase]
+      simp [ValueGradientProposalData.eBase]
   | true =>
-      simp [hacc, ValueGradientProposalData.eProp]
+      simp [ValueGradientProposalData.eProp]
 
 /-- Embed the signed value-gradient error into the ambient update space and
 multiply by the fixed penalty parameter. -/
