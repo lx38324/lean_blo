@@ -262,21 +262,25 @@ theorem StochasticExpectedGainSystem.joint_average_bound
     (S : StochasticExpectedGainSystem) {T : ℕ} (hT : 0 < T) :
     (1 / (T : ℝ)) * SeqSum T S.jointMeasure ≤
       4 * S.accumulatedRhs T / (S.eta * (T : ℝ)) := by
-  have hgain : 0 ≤ S.Cgain * SeqSum T S.EGamma := by
-    exact mul_nonneg S.toSafetyParameters.Cgain_lower.trans'
-      (div_nonneg
-        (mul_nonneg (le_of_lt S.eta_pos) (sq_nonneg S.lam))
-        (by norm_num))
-      (by simpa [SeqSum] using
-        Finset.sum_nonneg (fun t _ => S.EGamma_nonneg t))
+  have hcoefBase : 0 ≤ S.eta * S.lam ^ 2 / 2 :=
+    div_nonneg
+      (mul_nonneg (le_of_lt S.eta_pos) (sq_nonneg S.lam))
+      (by norm_num)
+  have hcoef : 0 ≤ S.Cgain := hcoefBase.trans S.toSafetyParameters.Cgain_lower
+  have hsum : 0 ≤ SeqSum T S.EGamma := by
+    simpa [SeqSum] using Finset.sum_nonneg (fun t _ => S.EGamma_nonneg t)
+  have hgain : 0 ≤ S.Cgain * SeqSum T S.EGamma :=
+    mul_nonneg hcoef hsum
   have hadj : S.gainAdjustedRhs T ≤ S.accumulatedRhs T := by
     dsimp [StochasticExpectedGainSystem.gainAdjustedRhs]
     linarith
+  have hTreal : 0 < (T : ℝ) := by exact_mod_cast hT
+  have hden : 0 < S.eta * (T : ℝ) := mul_pos S.eta_pos hTreal
+  have hscale : 0 ≤ 4 / (S.eta * (T : ℝ)) :=
+    le_of_lt (div_pos (by norm_num) hden)
+  have hscaled := mul_le_mul_of_nonneg_left hadj hscale
   exact (S.joint_average_bound_with_gain hT).trans (by
-    have hTreal : 0 < (T : ℝ) := by exact_mod_cast hT
-    have hden : 0 < S.eta * (T : ℝ) := mul_pos S.eta_pos hTreal
-    exact div_le_div_of_nonneg_right
-      (mul_le_mul_of_nonneg_left hadj (by norm_num)) (le_of_lt hden))
+    simpa [div_eq_mul_inv, mul_assoc] using hscaled)
 
 /-- Uniform second-moment and certificate-error bounds produce an explicit
 expected neighborhood. -/
