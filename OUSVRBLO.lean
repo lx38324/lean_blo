@@ -10,6 +10,7 @@ import OUSVRBLO.SafetyDescent
 import OUSVRBLO.CertifiedSafety
 import OUSVRBLO.ImprovementDescent
 import OUSVRBLO.ProxyCertificate
+import OUSVRBLO.ProxySequenceCertificate
 import OUSVRBLO.CertifiedGainDescent
 import OUSVRBLO.FiniteTimeCorollaries
 import OUSVRBLO.Asymptotics
