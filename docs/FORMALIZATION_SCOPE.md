@@ -76,6 +76,12 @@ eta * lam^2 / 2 <= Cgain <= 3/4 * eta * lam^2.
   `ResidualSafeguardSystem.base_le_envelope`,
   `ResidualSafeguardSystem.online_le_envelope`, and
   `ResidualSafeguardSystem.envelope_contract`.
+- Scalar and sequence proxy closure:
+  `CalibratedProxyGain.true_error_improves`,
+  `CertifiedGainInterface.r2_certified`,
+  `ProxyGainSequence.true_error_improves`,
+  `ProxyResidualCertificate.r2_certified`, and
+  `ProxyResidualCertificate.certified_error_bound`.
 - Parameter derivation:
   `SafetyParameters.two_alpha_Aeta_le`,
   `SafetyParameters.residual_drop_coeff`,
@@ -86,7 +92,13 @@ eta * lam^2 / 2 <= Cgain <= 3/4 * eta * lam^2.
   `inexact_gradient_descent_of_smoothness`,
   `inexact_gradient_descent_with_error_bound`, and
   `inexact_gradient_descent_with_certified_gain`.
-- Residual drift:
+- Residual smoothness to raw drift:
+  `norm_le_of_sq_le_sq_nonneg`,
+  `raw_residual_drift_of_smoothness`,
+  `raw_residual_drift_of_smoothness_sq_grad`,
+  `raw_residual_drift_of_smoothness_interface`, and
+  `ResidualSmoothnessSystem.raw_drift`.
+- Raw drift to final residual recursion:
   `young_product_with_parameter`,
   `SafeResidualDriftScalar.drift`, and
   `CertifiedResidualDriftScalar.certified_drift`.
@@ -101,12 +113,14 @@ eta * lam^2 / 2 <= Cgain <= 3/4 * eta * lam^2.
   `AnalyticGainSystem.toCertifiedGainStepSystem`,
   `AnalyticGainSystem.cumulative_budget`, and
   `AnalyticGainSystem.cumulative_budget_simple`.
+- Direct residual-smoothness analytic closure:
+  `SmoothResidualAnalyticSafetySystem.toAnalyticSafetySystem`,
+  `SmoothResidualAnalyticSafetySystem.cumulative_budget`,
+  `SmoothResidualAnalyticGainSystem.toAnalyticGainSystem`, and
+  `SmoothResidualAnalyticGainSystem.cumulative_budget`.
 - Fallback-safe public theorem:
   `CertifiedSafetySystem.one_step_lyapunov`,
   `CertifiedSafetySystem.cumulative_budget`, and averaged corollaries.
-- Proxy certificate:
-  `CalibratedProxyGain.true_error_improves` and
-  `CertifiedGainInterface.r2_certified`.
 - Certified-gain public theorem:
   `CertifiedGainStepSystem.one_step_lyapunov`, exact and simplified cumulative
   budgets, and averaged stationarity/residual bounds.
@@ -115,18 +129,27 @@ eta * lam^2 / 2 <= Cgain <= 3/4 * eta * lam^2.
   `CertifiedSafetySystem.exists_small_residual_iterate`,
   `CertifiedGainStepSystem.exists_stationary_iterate`, and
   `CertifiedGainStepSystem.exists_small_residual_iterate`.
+- Same-iterate joint performance layer:
+  the safety and gain-system `jointMeasure`, `joint_average_bound`, and
+  `exists_joint_certificate` theorems.  The gain itself is retained separately
+  as `budgetDensity` rather than treated as an error to minimize.
 - Bounded-budget asymptotic layer:
   `seq_average_tendsto_zero_of_bounded_partial_sums`, the safety and gain-system
   partial-sum bounds, and the stationarity/residual/gain
   `average_tendsto_zero` theorems.
 - Summable-error closure:
   `CertifiedSafetySystem.accumulatedRhs_le_summableRhs`,
-  `CertifiedGainStepSystem.accumulatedRhs_le_summableRhs`, and the five direct
+  `CertifiedGainStepSystem.accumulatedRhs_le_summableRhs`, and the direct
   `average_tendsto_zero_of_summable` corollaries.
 - Explicit summable-error rates:
   the safety and certified-gain `average_bound_of_summable`, joint
   `gradient_gain_average_bound_of_summable`, and best-iterate corollaries in
   `SummableRates.lean`.
+- Pointwise asymptotic layer:
+  the safety and gain-system `summable_of_summable` and
+  `tendsto_zero_of_summable` theorem families, together with
+  `AnalyticSafetySystem.gradient_norm_tendsto_zero_of_summable` and
+  `AnalyticGainSystem.gradient_norm_tendsto_zero_of_summable`.
 - Restricted value-response interface boundary:
   `RestrictedValueResponseInterface` and
   `RestrictedValueGradientInterface`.
@@ -153,26 +176,30 @@ Lean checks:
   projected-response residual with constant `L^2 / (1-q)^2`;
 - a scalar quadratic model satisfies the restricted minimizer, quadratic-growth,
   and value-gradient error interfaces simultaneously;
+- safe fallback and residual acceptance produce one common contraction envelope;
+- asymmetric proxy calibration and a baseline residual bound generate a
+  nonnegative true gain and the exact sequence-level certified error bound used
+  by the enhanced analytic theorem;
 - the single small-step condition implies all coefficient inequalities used by
   the Lyapunov proof;
-- safe fallback and residual acceptance produce one common contraction
-  envelope;
-- proxy tolerance and asymmetric calibration radii are correctly subtracted
-  from the nominal proxy margin;
 - a Hilbert-space smoothness inequality and squared error control imply the
   scalar inexact-descent interface;
+- residual smoothness, the manuscript-shaped squared residual-gradient bound,
+  and displacement control imply the raw residual compatibility inequality;
 - raw residual compatibility, Young's inequality, the step-square estimate, and
-  squared error control imply the scalar residual recursion;
+  squared value-gradient error control imply the final residual recursion;
 - the certified gain appears favorably in both surrogate descent and residual
   drift;
 - one-step inequalities telescope to finite-horizon budgets;
-- finite-horizon budgets imply averaged and best-iterate stationarity/residual
-  bounds;
+- finite-horizon budgets imply averaged, best-iterate, and same-iterate joint
+  stationarity/residual bounds;
 - uniformly bounded accumulated right-hand sides imply bounded stationarity,
   residual, and gain partial sums and hence average convergence to zero;
 - summability of the nonnegative perturbation sequences supplies the required
-  uniform accumulated-budget bound, explicit `O(1 / T)` rates, and the
-  corresponding asymptotic conclusions directly.
+  uniform accumulated-budget bound and explicit `O(1 / T)` rates;
+- under summable perturbations, the nonnegative stationarity and residual
+  sequences are summable and converge pointwise to zero, and the Hilbert-space
+  gradient norm itself satisfies `norm G_t -> 0`.
 
 ## Remaining analytic boundary
 
@@ -185,10 +212,10 @@ for real LLM/LoRA systems:
    monotonicity, or contraction holds with calibrated constants;
 3. differentiability and regularity of the selected restricted response branch;
 4. a general nonsmooth or set-valued nonconvex Danskin/envelope theorem;
-5. calibration of the residual-to-value-gradient constants for a concrete
-   neural model;
-6. the raw residual-compatibility inequality for a full stochastic training
-   system;
+5. calibration of the response-gradient, residual-gradient, and proxy constants
+   for a concrete neural model;
+6. stochastic mini-batch analogues of the deterministic smoothness,
+   residual-gradient, and displacement inequalities;
 7. projected or stochastic main-variable updates;
 8. original BLO KKT convergence or general nonconvex BLO global convergence.
 
@@ -196,6 +223,6 @@ Thus the checked result remains an interface theorem. It establishes that, when
 the listed local analytic premises hold, arbitrary learned proposals can be
 embedded through a certifiable fallback without invalidating the finite-horizon
 stationarity budget, and calibrated improvements enter that budget as a true
-nonnegative gain. The response-certificate layer verifies several concrete
-sufficient conditions for those interfaces without claiming global neural lower
-optimality.
+nonnegative gain. The response, proxy, and residual-smoothness certificate layers
+verify concrete sufficient conditions for several formerly black-box interfaces
+without claiming global neural lower optimality.
