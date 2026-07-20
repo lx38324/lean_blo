@@ -24,6 +24,7 @@ import OUSVRBLO.AnalyticGainClosure
 import OUSVRBLO.SmoothResidualAnalyticClosure
 import OUSVRBLO.EndToEndCertifiedGain
 import OUSVRBLO.SelectedEndToEndCertifiedGain
+import OUSVRBLO.CanonicalSelectedEndToEndCertifiedGain
 import OUSVRBLO.EndToEndCorollaries
 import OUSVRBLO.AnalyticPointwise
 import OUSVRBLO.AnalyticInterfaces
