@@ -55,6 +55,7 @@ theorem quadratic_growth (k x xi : ℝ) :
   rw [Real.dist_eq]
   simp only [h, response, v, sub_zero, sq_abs]
   ring_nf
+  exact le_rfl
 
 /-- The represented response is the unique exact restricted minimizer. -/
 theorem unique_minimizer (k x xi : ℝ)
@@ -62,12 +63,17 @@ theorem unique_minimizer (k x xi : ℝ)
       (valueGradientInterface k).toRestrictedValueResponseInterface.IsMinimizer
         x xi) :
     xi = response k x := by
-  refine RestrictedValueResponseInterface.eq_response_of_quadratic_growth
-    (valueGradientInterface k).toRestrictedValueResponseInterface
-    (1 / 2) (by norm_num) ?_ hxi
-  intro x' xi' _
-  have hq := quadratic_growth k x' xi'
-  simpa [valueGradientInterface, h, response, v] using hq
+  have hresp_mem :
+      response k x ∈
+        (valueGradientInterface k).toRestrictedValueResponseInterface.feasible x := by
+    simp [valueGradientInterface]
+  have hmin := hxi.2 (response k x) hresp_mem
+  change h k x xi ≤ h k x (response k x) at hmin
+  have hsquare : (xi - k * x) ^ 2 = 0 := by
+    dsimp [h, response] at hmin
+    nlinarith [sq_nonneg (xi - k * x)]
+  have hsub : xi - k * x = 0 := sq_eq_zero_iff.mp hsquare
+  exact sub_eq_zero.mp hsub
 
 /-- Exact norm identity behind response-Lipschitzness. -/
 theorem gradXH_error_norm_eq (k x xi : ℝ) :
