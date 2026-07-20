@@ -1,11 +1,12 @@
-# Finite-time, joint, and pointwise certificates
+# Finite-time, joint, pointwise, and error-floor certificates
 
 This note records the consequence layer of the OUSVR-BLO certified Lyapunov
-budget.  It distinguishes three logically different statements:
+budget.  It distinguishes four logically different statements:
 
 1. averaged finite-horizon bounds;
 2. one-iterate certificates on the same round;
-3. pointwise convergence under summable perturbations.
+3. pointwise convergence under summable perturbations;
+4. stationarity/residual neighborhoods under persistent bounded perturbations.
 
 The distinction matters because the uncertainty-adjusted gain `Gamma_t` is a
 favorable budget term, not an error quantity that should be minimized.
@@ -88,7 +89,7 @@ G_t^2+\lambda^2C_RR_t
 $$
 
 This is stronger than separately stating that one round has small stationarity
-and possibly another round has small residual.  The same accepted response round
+and possibly another round has small residual.  The same accepted-response round
 satisfies both controls.
 
 Lean declarations:
@@ -211,7 +212,7 @@ SummableRates.lean
 JointCertificates.lean
 ```
 
-## 5. Pointwise convergence
+## 5. Pointwise convergence under summable perturbations
 
 The finite accumulated budget bounds the nonnegative partial sums.  Under the
 summable perturbation premise, Lean derives
@@ -259,7 +260,114 @@ CertifiedGainStepSystem.residual_tendsto_zero_of_summable
 CertifiedGainStepSystem.gain_tendsto_zero_of_summable
 ```
 
-## 6. Gradient-norm interpretation
+## 6. Persistent bounded perturbations
+
+Summability is stronger than what is available in many stochastic or
+fixed-tolerance regimes.  Define the one-round weighted perturbation
+
+$$
+\delta_t
+:=
+C_\varepsilon\varepsilon_t
++C_bb_t
++C_dd_t.
+$$
+
+Suppose
+
+$$
+\delta_t\le\bar\delta
+\quad\text{for every }t.
+$$
+
+Lean first proves
+
+$$
+\mathcal B_T
+\le
+\Psi_0-P_\star+T\bar\delta.
+$$
+
+Substituting this into the joint average bound gives
+
+$$
+\boxed{
+\frac1T\sum_{t<T}
+\left(
+G_t^2+\lambda^2C_RR_t
+\right)
+\le
+\frac{4(\Psi_0-P_\star)}{\eta T}
++
+\frac{4\bar\delta}{\eta}.
+}
+$$
+
+The best-iterate principle yields
+
+$$
+\boxed{
+\exists t<T:\quad
+G_t^2+\lambda^2C_RR_t
+\le
+\frac{4(\Psi_0-P_\star)}{\eta T}
++
+\frac{4\bar\delta}{\eta}.
+}
+$$
+
+Thus the transient term decays as `O(1/T)`, while persistent certificate errors
+produce the explicit floor
+
+$$
+\frac{4\bar\delta}{\eta}.
+$$
+
+Separate uniform bounds
+
+$$
+\varepsilon_t\le\bar\varepsilon,
+\qquad
+b_t\le\bar b,
+\qquad
+d_t\le\bar d
+$$
+
+imply
+
+$$
+\delta_t
+\le
+C_\varepsilon\bar\varepsilon
++C_b\bar b
++C_d\bar d.
+$$
+
+Lean declarations:
+
+```text
+CertifiedGainStepSystem.weightedPerturbation
+CertifiedGainStepSystem.accumulatedRhs_le_gap_add_error_floor
+CertifiedGainStepSystem.joint_average_bound_of_error_floor
+CertifiedGainStepSystem.exists_joint_certificate_of_error_floor
+CertifiedGainStepSystem.weightedPerturbation_le_of_uniform_bounds
+TrajectoryCertifiedProposalGainSystem.exists_joint_certificate_of_error_floor
+```
+
+Lean file: `OUSVRBLO/PersistentErrorFloor.lean`.
+
+The persistent-error theorem deliberately does not claim
+
+$$
+G_t^2\to0
+\quad\text{or}\quad
+R_t\to0.
+$$
+
+Those pointwise limits require the stronger summability assumptions of the
+previous sections.
+
+## 7. Gradient-norm interpretation and iteration complexity
 
 In the analytic Hilbert-space closure,
 
@@ -290,6 +398,30 @@ AnalyticSafetySystem.gradient_norm_tendsto_zero_of_summable
 AnalyticGainSystem.gradient_norm_tendsto_zero_of_summable
 ```
 
-This still does not assert that the iterates `z_t` converge to a unique point.
-It asserts that the fixed-penalty stationarity measure and response residual
-vanish along the sequence.
+If a trajectory gradient certificate identifies `G_t` with the actual objective
+gradient and
+
+$$
+4\mathcal B_\infty
+\le
+\epsilon^2\eta T,
+$$
+
+then one iterate satisfies
+
+$$
+\boxed{
+\|\nabla P(z_t)\|\le\epsilon,
+\qquad
+R_t\le
+\frac{\epsilon^2}{\lambda^2C_R}.
+}
+$$
+
+This is the checked `O(\epsilon^{-2})` gradient-norm stationarity dependence.
+
+The pointwise and finite-time statements still do not assert that the iterates
+`z_t` converge to a unique point.  They assert that the represented
+fixed-penalty stationarity measure and response residual vanish under summable
+perturbations, or enter an explicit neighborhood under persistent bounded
+perturbations.
