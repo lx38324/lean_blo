@@ -219,6 +219,7 @@ theorem CertifiedGainStepSystem.budgetDensity_average_bound
               + (S.eta * S.lam ^ 2 / 2) * SeqSum T S.Gamma
               + (S.eta * S.lam ^ 2 * S.CR / 4) * SeqSum T S.R) := by
                 field_simp [ne_of_gt S.eta_pos, ne_of_gt hTreal]
+                ring
     _ ≤ (4 / (S.eta * (T : ℝ))) * S.accumulatedRhs T := hscaled
     _ = 4 * S.accumulatedRhs T / (S.eta * (T : ℝ)) := by ring
 
