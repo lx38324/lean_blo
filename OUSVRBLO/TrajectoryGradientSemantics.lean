@@ -1,4 +1,5 @@
 import OUSVRBLO.TrajectoryIterationComplexity
+import OUSVRBLO.PersistentErrorFloor
 import Mathlib.Analysis.Calculus.Gradient.Basic
 
 open BigOperators Filter Topology
@@ -145,6 +146,83 @@ theorem TrajectoryCertifiedProposalGainSystem.exists_objective_gradient_norm_and
   have hnormNonneg : 0 ≤ ‖gradient S.objective (S.z t)‖ := norm_nonneg _
   have hgrad : ‖gradient S.objective (S.z t)‖ ≤ epsilon := by
     nlinarith [sq_nonneg epsilon]
+  exact ⟨t, ht, hgrad, hres⟩
+
+/-- Persistent bounded certificate errors yield an objective-gradient/residual
+neighborhood rather than an incorrect zero-error convergence claim. -/
+theorem TrajectoryCertifiedProposalGainSystem.exists_objective_gradient_joint_certificate_of_error_floor
+    {E X : Type*}
+    [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+    [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    (S : TrajectoryCertifiedProposalGainSystem E X)
+    (C : TrajectoryGradientCertificate S)
+    {T : ℕ} (hT : 0 < T) (floor : ℝ)
+    (hfloor : ∀ t,
+      S.toCertifiedGainStepSystem.weightedPerturbation t ≤ floor) :
+    ∃ t < T,
+      ‖gradient S.objective (S.z t)‖ ^ 2
+          + S.driftParameters.lam ^ 2 * S.CR * S.proposal.R t
+        ≤ 4 * (S.toCertifiedGainStepSystem.Psi 0 - S.Pstar) /
+            (S.driftParameters.eta * (T : ℝ))
+          + 4 * floor / S.driftParameters.eta := by
+  obtain ⟨t, ht, hcert⟩ :=
+    S.exists_joint_certificate_of_error_floor hT floor hfloor
+  refine ⟨t, ht, ?_⟩
+  rw [C.gradient_eq t]
+  exact hcert
+
+/-- Component form of the objective-gradient persistent-error neighborhood. -/
+theorem TrajectoryCertifiedProposalGainSystem.exists_objective_gradient_sq_and_residual_of_error_floor
+    {E X : Type*}
+    [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+    [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    (S : TrajectoryCertifiedProposalGainSystem E X)
+    (C : TrajectoryGradientCertificate S)
+    {T : ℕ} (hT : 0 < T) (floor : ℝ)
+    (hfloor : ∀ t,
+      S.toCertifiedGainStepSystem.weightedPerturbation t ≤ floor) :
+    ∃ t < T,
+      ‖gradient S.objective (S.z t)‖ ^ 2 ≤
+          4 * (S.toCertifiedGainStepSystem.Psi 0 - S.Pstar) /
+              (S.driftParameters.eta * (T : ℝ))
+            + 4 * floor / S.driftParameters.eta ∧
+      S.proposal.R t ≤
+        (4 * (S.toCertifiedGainStepSystem.Psi 0 - S.Pstar) /
+              (S.driftParameters.eta * (T : ℝ))
+            + 4 * floor / S.driftParameters.eta) /
+          (S.driftParameters.lam ^ 2 * S.CR) := by
+  obtain ⟨t, ht, hjoint⟩ :=
+    S.exists_objective_gradient_joint_certificate_of_error_floor
+      C hT floor hfloor
+  have hlamSq : 0 < S.driftParameters.lam ^ 2 := by
+    simpa [pow_two] using
+      mul_pos S.driftParameters.lam_pos S.driftParameters.lam_pos
+  have hcoef : 0 < S.driftParameters.lam ^ 2 * S.CR :=
+    mul_pos hlamSq S.CR_pos
+  have hresTerm :
+      0 ≤ S.driftParameters.lam ^ 2 * S.CR * S.proposal.R t :=
+    mul_nonneg hcoef.le (S.R_nonneg t)
+  have hgrad :
+      ‖gradient S.objective (S.z t)‖ ^ 2 ≤
+        4 * (S.toCertifiedGainStepSystem.Psi 0 - S.Pstar) /
+            (S.driftParameters.eta * (T : ℝ))
+          + 4 * floor / S.driftParameters.eta :=
+    (le_add_of_nonneg_right hresTerm).trans hjoint
+  have hgradTerm : 0 ≤ ‖gradient S.objective (S.z t)‖ ^ 2 := sq_nonneg _
+  have hscaled :
+      S.driftParameters.lam ^ 2 * S.CR * S.proposal.R t ≤
+        4 * (S.toCertifiedGainStepSystem.Psi 0 - S.Pstar) /
+            (S.driftParameters.eta * (T : ℝ))
+          + 4 * floor / S.driftParameters.eta := by
+    nlinarith
+  have hres :
+      S.proposal.R t ≤
+        (4 * (S.toCertifiedGainStepSystem.Psi 0 - S.Pstar) /
+              (S.driftParameters.eta * (T : ℝ))
+            + 4 * floor / S.driftParameters.eta) /
+          (S.driftParameters.lam ^ 2 * S.CR) := by
+    apply (le_div_iff₀ hcoef).2
+    simpa [mul_comm, mul_left_comm, mul_assoc] using hscaled
   exact ⟨t, ht, hgrad, hres⟩
 
 end
