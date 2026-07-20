@@ -28,6 +28,7 @@ import OUSVRBLO.SelectedEndToEndCertifiedGain
 import OUSVRBLO.CanonicalSelectedEndToEndCertifiedGain
 import OUSVRBLO.TrajectoryCertifiedProposalGain
 import OUSVRBLO.EndToEndCorollaries
+import OUSVRBLO.TrajectoryCertifiedProposalCorollaries
 import OUSVRBLO.AnalyticPointwise
 import OUSVRBLO.AnalyticInterfaces
 import OUSVRBLO.LocalSurrogate
