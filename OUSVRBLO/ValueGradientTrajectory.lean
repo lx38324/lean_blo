@@ -28,6 +28,7 @@ structure ValueGradientTrajectorySystem
   errorEmbedding : V →ₗᵢ[ℝ] E
   CR : ℝ
   LP : ℝ
+  LP_nonneg : 0 ≤ LP
   CR_pos : 0 < CR
   theta_pos : 0 < proposal.theta
   theta_le_one : proposal.theta ≤ 1
@@ -104,6 +105,7 @@ def ValueGradientTrajectorySystem.toTrajectorySystem
   driftParameters := S.driftParameters
   CR := S.CR
   LP := S.LP
+  LP_nonneg := S.LP_nonneg
   CR_pos := S.CR_pos
   theta_pos := S.theta_pos
   theta_le_one := S.theta_le_one
