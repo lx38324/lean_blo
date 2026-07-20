@@ -42,7 +42,6 @@ theorem CertifiedGainStepSystem.joint_average_le_cesaroRhs
       dsimp [CertifiedGainStepSystem.accumulatedRhs,
         CertifiedGainStepSystem.cesaroRhs, CesaroAverage]
       field_simp [ne_of_gt S.eta_pos, ne_of_gt hTreal]
-      ring
 
 /-- If all perturbation averages vanish, the normalized certified-gain right-hand
 side vanishes even when the perturbations are not summable. -/
@@ -82,8 +81,14 @@ theorem CertifiedGainStepSystem.cesaroRhs_tendsto_zero
         Tendsto (fun _ : ℕ => 4 * S.Cd / S.eta) atTop
           (𝓝 (4 * S.Cd / S.eta)) := tendsto_const_nhds
     simpa using hconst.mul hd
-  simpa [CertifiedGainStepSystem.cesaroRhs] using
-    ((hgap.add heps').add hb').add hd'
+  change Tendsto
+    (fun T : ℕ =>
+      (4 * (S.Psi 0 - S.Pstar) / S.eta) / (T : ℝ)
+        + (4 * S.Ceps / S.eta) * CesaroAverage S.eps T
+        + (4 * S.Cb / S.eta) * CesaroAverage S.b T
+        + (4 * S.Cd / S.eta) * CesaroAverage S.d T)
+    atTop (𝓝 0)
+  exact ((hgap.add heps').add hb').add hd'
 
 /-- Vanishing perturbation averages imply vanishing average joint
 stationarity/residual performance.  No summability premise is required. -/
@@ -93,7 +98,7 @@ theorem CertifiedGainStepSystem.joint_average_tendsto_zero_of_cesaro
     (hb : Tendsto (CesaroAverage S.b) atTop (𝓝 0))
     (hd : Tendsto (CesaroAverage S.d) atTop (𝓝 0)) :
     Tendsto (CesaroAverage S.jointMeasure) atTop (𝓝 0) := by
-  apply squeeze_zero'
+  refine squeeze_zero' ?_ ?_ (S.cesaroRhs_tendsto_zero heps hb hd)
   · exact Filter.Eventually.of_forall fun T =>
       CesaroAverage_nonneg S.jointMeasure (fun t => by
         exact add_nonneg (S.Gsq_nonneg t)
@@ -102,7 +107,6 @@ theorem CertifiedGainStepSystem.joint_average_tendsto_zero_of_cesaro
             (S.R_nonneg t))) T
   · filter_upwards [eventually_gt_atTop (0 : ℕ)] with T hT
     exact S.joint_average_le_cesaroRhs hT
-  · exact S.cesaroRhs_tendsto_zero heps hb hd
 
 /-- The average squared stationarity measure vanishes under Cesaro-vanishing
 perturbations. -/
@@ -113,7 +117,7 @@ theorem CertifiedGainStepSystem.gradient_average_tendsto_zero_of_cesaro
     (hd : Tendsto (CesaroAverage S.d) atTop (𝓝 0)) :
     Tendsto (CesaroAverage S.Gsq) atTop (𝓝 0) := by
   have hjoint := S.joint_average_tendsto_zero_of_cesaro heps hb hd
-  apply squeeze_zero'
+  refine squeeze_zero' ?_ ?_ hjoint
   · exact Filter.Eventually.of_forall fun T =>
       CesaroAverage_nonneg S.Gsq S.Gsq_nonneg T
   · exact Filter.Eventually.of_forall fun T => by
@@ -127,9 +131,12 @@ theorem CertifiedGainStepSystem.gradient_average_tendsto_zero_of_cesaro
       change CesaroAverage S.jointMeasure T =
         CesaroAverage S.Gsq T
           + S.lam ^ 2 * S.CR * CesaroAverage S.R T at heq
-      rw [heq]
-      exact le_add_of_nonneg_right hRterm
-  · exact hjoint
+      calc
+        CesaroAverage S.Gsq T
+            ≤ CesaroAverage S.Gsq T
+                + S.lam ^ 2 * S.CR * CesaroAverage S.R T :=
+              le_add_of_nonneg_right hRterm
+        _ = CesaroAverage S.jointMeasure T := heq.symm
 
 /-- The average response residual also vanishes under Cesaro-vanishing
 perturbations. -/
@@ -153,7 +160,7 @@ theorem CertifiedGainStepSystem.residual_average_tendsto_zero_of_cesaro
         Tendsto (fun _ : ℕ => 1 / (S.lam ^ 2 * S.CR)) atTop
           (𝓝 (1 / (S.lam ^ 2 * S.CR))) := tendsto_const_nhds
     simpa using hconst.mul hjoint
-  apply squeeze_zero'
+  refine squeeze_zero' ?_ ?_ hupperTendsto
   · exact Filter.Eventually.of_forall fun T =>
       CesaroAverage_nonneg S.R S.R_nonneg T
   · exact Filter.Eventually.of_forall fun T => by
@@ -166,8 +173,12 @@ theorem CertifiedGainStepSystem.residual_average_tendsto_zero_of_cesaro
       have hscaled :
           S.lam ^ 2 * S.CR * CesaroAverage S.R T ≤
             CesaroAverage S.jointMeasure T := by
-        rw [heq]
-        exact le_add_of_nonneg_left hGavg
+        calc
+          S.lam ^ 2 * S.CR * CesaroAverage S.R T
+              ≤ CesaroAverage S.Gsq T
+                  + S.lam ^ 2 * S.CR * CesaroAverage S.R T :=
+                le_add_of_nonneg_left hGavg
+          _ = CesaroAverage S.jointMeasure T := heq.symm
       have hinv : 0 ≤ 1 / (S.lam ^ 2 * S.CR) := by positivity
       have hmul := mul_le_mul_of_nonneg_left hscaled hinv
       calc
@@ -177,7 +188,6 @@ theorem CertifiedGainStepSystem.residual_average_tendsto_zero_of_cesaro
                   field_simp [ne_of_gt S.lam_pos, ne_of_gt S.CR_pos]
         _ ≤ (1 / (S.lam ^ 2 * S.CR)) *
               CesaroAverage S.jointMeasure T := hmul
-  · exact hupperTendsto
 
 /-- The safeguard envelope error is the sum of the base contraction error and
 residual-acceptance tolerance also at the level of finite averages. -/
@@ -222,9 +232,8 @@ theorem TrajectoryCertifiedProposalGainSystem.gradient_average_tendsto_zero_of_c
       (CesaroAverage
         S.proposal.toAcceptedResponseSelector.safeguardSystem.eps)
       atTop (𝓝 0)
-    exact
-      S.proposal.toAcceptedResponseSelector.safeguardSystem
-        |>.eps_average_tendsto_zero_of_cesaro hepsBase htauR
+    exact ResidualSafeguardSystem.eps_average_tendsto_zero_of_cesaro
+      S.proposal.toAcceptedResponseSelector.safeguardSystem hepsBase htauR
   change Tendsto (CesaroAverage S.toCertifiedGainStepSystem.Gsq) atTop (𝓝 0)
   exact S.toCertifiedGainStepSystem.gradient_average_tendsto_zero_of_cesaro
     heps hb hd
@@ -247,9 +256,8 @@ theorem TrajectoryCertifiedProposalGainSystem.residual_average_tendsto_zero_of_c
       (CesaroAverage
         S.proposal.toAcceptedResponseSelector.safeguardSystem.eps)
       atTop (𝓝 0)
-    exact
-      S.proposal.toAcceptedResponseSelector.safeguardSystem
-        |>.eps_average_tendsto_zero_of_cesaro hepsBase htauR
+    exact ResidualSafeguardSystem.eps_average_tendsto_zero_of_cesaro
+      S.proposal.toAcceptedResponseSelector.safeguardSystem hepsBase htauR
   change Tendsto (CesaroAverage S.toCertifiedGainStepSystem.R) atTop (𝓝 0)
   exact S.toCertifiedGainStepSystem.residual_average_tendsto_zero_of_cesaro
     heps hb hd
