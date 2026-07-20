@@ -27,7 +27,7 @@ This is the local property needed by the value-response interpretation; it does
 not assert uniqueness for the original unrestricted nonconvex lower problem.
 -/
 theorem RestrictedValueResponseInterface.eq_response_of_quadratic_growth
-    (S : RestrictedValueResponseInterface) [PseudoMetricSpace S.Y]
+    (S : RestrictedValueResponseInterface) [MetricSpace S.Y]
     (modulus : ℝ) (hmodulus : 0 < modulus)
     (hqg :
       ∀ x xi, xi ∈ S.feasible x →
@@ -42,6 +42,7 @@ theorem RestrictedValueResponseInterface.eq_response_of_quadratic_growth
     exact mul_nonneg (le_of_lt hmodulus) (sq_nonneg _)
   have hprod_zero : modulus * dist xi (S.response x) ^ 2 = 0 := by
     nlinarith
+  have hdist_nonneg : 0 ≤ dist xi (S.response x) := dist_nonneg
   have hdist_zero : dist xi (S.response x) = 0 := by
     nlinarith [sq_nonneg (dist xi (S.response x))]
   exact dist_eq_zero.mp hdist_zero
@@ -104,7 +105,10 @@ theorem RestrictedValueResponseInterface.hasFDerivAt_value_of_stationary_respons
   have hbranch := hasFDerivAt_branchValue_of_stationary_response
     (fun p : S.X × S.Y => S.h p.1 p.2) S.response x dh dresponse hh hr
       hstationary
-  simpa only [S.value_eq_response] using hbranch
+  have hv : S.v = fun x => S.h x (S.response x) :=
+    funext S.value_eq_response
+  rw [hv]
+  exact hbranch
 
 end
 
