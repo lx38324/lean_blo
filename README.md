@@ -37,10 +37,10 @@ residual smoothness + squared residual-gradient control + displacement control
 CR * beta <= theta / 4
   => all advertised Lyapunov coefficient bounds
 
-one-step descent + drift + envelope contraction
-  => finite-horizon stationarity, residual, and gain budgets
-  => averaged, same-iterate, best-iterate, summable-error, explicit O(1/T),
-     and pointwise stationarity/residual guarantees
+safeguard + sequence proxy + analytic certificates
+  => end-to-end certified-gain system
+  => finite-horizon stationarity, residual, and gain budget
+  => same-iterate O(1/T) and pointwise consequences
 ```
 
 The exact enhanced budget is
@@ -129,6 +129,12 @@ bash scripts/check_no_placeholder.sh
 - `OUSVRBLO/AnalyticGainClosure.lean`: composed analytic certified-gain theorem.
 - `OUSVRBLO/SmoothResidualAnalyticClosure.lean`: removes `raw_drift` as a public
   premise by composing residual smoothness directly into both analytic systems.
+- `OUSVRBLO/EndToEndCertifiedGain.lean`: packages the concrete safeguard,
+  sequence proxy, local surrogate smoothness, and residual smoothness premises
+  into the exact and simplified certified-gain budgets.
+- `OUSVRBLO/EndToEndCorollaries.lean`: gives the same-iterate certificate and
+  pointwise stationarity, residual, and gain consequences under summable base
+  contraction, acceptance-tolerance, bias, and drift errors.
 - `OUSVRBLO/CertifiedSafety.lean`: public fallback-safe finite-horizon theorem.
 - `OUSVRBLO/CertifiedGainDescent.lean`: exact and simplified gain budgets.
 - `OUSVRBLO/FiniteTimeCorollaries.lean`: best-iterate stationarity and residual
@@ -163,6 +169,8 @@ bash scripts/check_no_placeholder.sh
 - `OUSVRBLO/ImprovementDescent.lean`: legacy nominal-improvement formulation.
 - `OUSVRBLO/LyapunovBudget.lean`: budget structures and averaged consequences.
 - `docs/OUSVR_BLO_CERTIFIED_THEORY.md`: revised theorem and Lean theorem map.
+- `docs/END_TO_END_CERTIFIED_THEOREM.md`: highest-level certificate-facing
+  theorem, same-iterate rate, and pointwise consequence map.
 - `docs/RESTRICTED_RESPONSE_CERTIFICATES.md`: local response, envelope, and R2
   certificate derivations.
 - `docs/FINITE_TIME_AND_POINTWISE_CERTIFICATES.md`: same-iterate, explicit-rate,
