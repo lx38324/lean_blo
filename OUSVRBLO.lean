@@ -11,5 +11,7 @@ import OUSVRBLO.ImprovementDescent
 import OUSVRBLO.ProxyCertificate
 import OUSVRBLO.CertifiedGainDescent
 import OUSVRBLO.FiniteTimeCorollaries
+import OUSVRBLO.AnalyticClosure
+import OUSVRBLO.AnalyticGainClosure
 import OUSVRBLO.AnalyticInterfaces
 import OUSVRBLO.LocalSurrogate
