@@ -21,6 +21,7 @@ import OUSVRBLO.JointCertificates
 import OUSVRBLO.AnalyticClosure
 import OUSVRBLO.AnalyticGainClosure
 import OUSVRBLO.SmoothResidualAnalyticClosure
+import OUSVRBLO.EndToEndCertifiedGain
 import OUSVRBLO.AnalyticPointwise
 import OUSVRBLO.AnalyticInterfaces
 import OUSVRBLO.LocalSurrogate
