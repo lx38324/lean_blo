@@ -228,7 +228,7 @@ theorem TrajectoryCertifiedProposalGainSystem.cumulative_budget
 
 /-- Simplified finite-horizon theorem using the checked lower gain coefficient. -/
 theorem TrajectoryCertifiedProposalGainSystem.cumulative_budget_simple
-    {E X : Type*)
+    {E X : Type*}
     [NormedAddCommGroup E] [InnerProductSpace ℝ E]
     [NormedAddCommGroup X] [InnerProductSpace ℝ X]
     (S : TrajectoryCertifiedProposalGainSystem E X) (T : ℕ) :
