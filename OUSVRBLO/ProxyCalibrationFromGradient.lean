@@ -24,11 +24,14 @@ If `gProxy` approximates the represented value gradient `gValue` within
 
 `| ||gCandidate-gProxy||^2 - ||gCandidate-gValue||^2 |
    <= delta * (2*B + delta)`.
+
+No separate `B >= 0` premise is needed: it follows automatically whenever the
+candidate norm is bounded above by `B`.
 -/
 theorem proxy_squared_error_calibrated_of_gradient_bounds
     {G : Type*} [NormedAddCommGroup G]
     (gCandidate gProxy gValue : G) (delta B : ℝ)
-    (hdelta : 0 ≤ delta) (hB : 0 ≤ B)
+    (hdelta : 0 ≤ delta)
     (hproxy : ‖gProxy - gValue‖ ≤ delta)
     (hcandidate : ‖gCandidate - gValue‖ ≤ B) :
     |‖gCandidate - gProxy‖ ^ 2 - ‖gCandidate - gValue‖ ^ 2| ≤
@@ -88,7 +91,7 @@ theorem asymmetric_proxy_squared_error_calibration
     {G : Type*} [NormedAddCommGroup G]
     (gProp gBase gProxy gValue : G)
     (delta BProp BBase : ℝ)
-    (hdelta : 0 ≤ delta) (hBProp : 0 ≤ BProp) (hBBase : 0 ≤ BBase)
+    (hdelta : 0 ≤ delta)
     (hproxy : ‖gProxy - gValue‖ ≤ delta)
     (hprop : ‖gProp - gValue‖ ≤ BProp)
     (hbase : ‖gBase - gValue‖ ≤ BBase) :
@@ -98,9 +101,9 @@ theorem asymmetric_proxy_squared_error_calibration
         proxyCalibrationRadius delta BBase := by
   constructor
   · exact proxy_squared_error_calibrated_of_gradient_bounds
-      gProp gProxy gValue delta BProp hdelta hBProp hproxy hprop
+      gProp gProxy gValue delta BProp hdelta hproxy hprop
   · exact proxy_squared_error_calibrated_of_gradient_bounds
-      gBase gProxy gValue delta BBase hdelta hBBase hproxy hbase
+      gBase gProxy gValue delta BBase hdelta hproxy hbase
 
 /-- Sequence-level form used to instantiate asymmetric calibration assumptions at
 each proposal round. -/
@@ -109,8 +112,6 @@ theorem asymmetric_proxy_squared_error_calibration_sequence
     (gProp gBase gProxy gValue : ℕ → G)
     (delta BProp BBase : ℕ → ℝ)
     (hdelta : ∀ t, 0 ≤ delta t)
-    (hBProp : ∀ t, 0 ≤ BProp t)
-    (hBBase : ∀ t, 0 ≤ BBase t)
     (hproxy : ∀ t, ‖gProxy t - gValue t‖ ≤ delta t)
     (hprop : ∀ t, ‖gProp t - gValue t‖ ≤ BProp t)
     (hbase : ∀ t, ‖gBase t - gValue t‖ ≤ BBase t)
@@ -122,8 +123,7 @@ theorem asymmetric_proxy_squared_error_calibration_sequence
   asymmetric_proxy_squared_error_calibration
     (gProp t) (gBase t) (gProxy t) (gValue t)
     (delta t) (BProp t) (BBase t)
-    (hdelta t) (hBProp t) (hBBase t)
-    (hproxy t) (hprop t) (hbase t)
+    (hdelta t) (hproxy t) (hprop t) (hbase t)
 
 end
 
