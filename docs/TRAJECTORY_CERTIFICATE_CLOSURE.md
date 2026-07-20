@@ -1,8 +1,9 @@
 # Trajectory-level certificate closure
 
 This note records the theorem-facing layer above the explicit proposal selector
-and canonical certified-gain theorem.  It has been checked by Lean as part of
-the root library.
+and canonical certified-gain theorem.  It also records the stronger vector and
+fixed-penalty semantic layers that identify the inexact update with the response
+gradient selected by the certificates.
 
 ## 1. Motivation
 
@@ -19,6 +20,13 @@ The trajectory layer removes two further pre-collected premises:
 1. the smoothness inequality after the algorithmic update has already been
    substituted;
 2. the upper-block displacement estimate.
+
+The value-gradient trajectory and fixed-penalty coupling layers remove two
+additional semantic abstractions:
+
+3. the error vector is defined from actual represented value-gradient vectors;
+4. the represented value gradient used by that error is the same value component
+   appearing in the fixed-penalty objective gradient.
 
 ## 2. Actual trajectory update
 
@@ -84,7 +92,157 @@ Lean declaration:
 TrajectoryCertifiedProposalGainSystem.displacement_bound
 ```
 
-## 4. Complete trajectory-facing theorem
+## 4. Error vector from selected value-gradient responses
+
+Let
+
+$$
+g_t^v
+$$
+
+be the represented value gradient, and let
+
+$$
+g_t^B,
+\qquad
+g_t^P
+$$
+
+be the response partial gradients associated with the base response and learned
+proposal.  The explicit selector chooses
+
+$$
+g_t^O
+=
+\begin{cases}
+g_t^P,&\text{if accepted},\\
+g_t^B,&\text{if rejected}.
+\end{cases}
+$$
+
+The vector proposal layer defines
+
+$$
+e_t^B=\|g_t^v-g_t^B\|^2,
+$$
+
+$$
+e_t^P=\|g_t^v-g_t^P\|^2,
+$$
+
+and proves
+
+$$
+e_t^O=\|g_t^v-g_t^O\|^2.
+$$
+
+For an isometric ambient embedding `embed`, define
+
+$$
+E_t
+=
+\lambda\,\operatorname{embed}(g_t^v-g_t^O).
+$$
+
+Lean verifies the exact identity
+
+$$
+\boxed{
+\|E_t\|^2=\lambda^2e_t^O.
+}
+$$
+
+Therefore the trajectory theorem's error-vector premise can be generated from
+actual selected value-gradient vectors rather than supplied as an unrelated
+inequality.
+
+Lean declarations:
+
+```text
+ValueGradientProposalData.selector_eOnline
+ValueGradientProposalData.ambientError_sq
+ValueGradientTrajectorySystem.Err_sq
+ValueGradientTrajectorySystem.toTrajectorySystem
+```
+
+## 5. Fixed-penalty gradient coupling
+
+For a represented objective
+
+$$
+P(z)
+=
+F(z)+\lambda\bigl(h(z)-v(z)\bigr),
+$$
+
+component gradient certificates give
+
+$$
+G_t
+=
+ g_t^F
++
+\lambda
+\left(
+ g_t^h-\operatorname{embed}(g_t^v)
+\right).
+$$
+
+The coupling certificate requires the `g_t^v` above to be exactly the value
+gradient stored in the proposal layer.  Since
+
+$$
+E_t
+=
+\lambda\operatorname{embed}(g_t^v-g_t^O),
+$$
+
+Lean proves
+
+$$
+\boxed{
+G_t+E_t
+=
+ g_t^F
++
+\lambda
+\left(
+ g_t^h-\operatorname{embed}(g_t^O)
+\right).
+}
+$$
+
+Consequently the actual displacement is
+
+$$
+\boxed{
+z_{t+1}-z_t
+=
+-
+\eta
+\left[
+ g_t^F
++
+\lambda
+\left(
+ g_t^h-\operatorname{embed}(g_t^O)
+\right)
+\right].
+}
+$$
+
+This closes the semantic gap between the exact fixed-penalty objective gradient
+and the selected online response gradient.
+
+Lean declarations:
+
+```text
+ValueGradientFixedPenaltyCertificate.objective_gradient_eq
+ValueGradientFixedPenaltyCertificate.approximate_gradient_eq
+ValueGradientFixedPenaltyCertificate.update_uses_selected_gradient
+```
+
+## 6. Complete trajectory-facing theorem
 
 The structure
 
@@ -127,7 +285,12 @@ The exact form is
   <= initial Lyapunov gap + accumulated certificate errors.
 ```
 
-## 5. Finite-time and pointwise consequences
+`ValueGradientTrajectorySystem` constructs this trajectory API with the error
+vector defined from the selected value-gradient approximation.  A separate
+`ValueGradientFixedPenaltyCertificate` then identifies `G` and `G + Err` with
+the exact and selected-response fixed-penalty gradients.
+
+## 7. Finite-time, pointwise, and persistent-error consequences
 
 `OUSVRBLO/TrajectoryCertifiedProposalCorollaries.lean` transfers the checked
 same-iterate and asymptotic conclusions to the trajectory-facing API.
@@ -153,10 +316,25 @@ Gamma t -> 0.
 The gain limit is a consequence of the finite nonnegative gain budget; gain is
 not treated as an error objective.
 
-## 6. Claim boundary
+If the weighted one-round perturbation is only uniformly bounded by `floor`,
+`OUSVRBLO/PersistentErrorFloor.lean` gives
+
+```text
+exists t < T,
+  ‖G t‖^2 + lam^2 * CR * R t
+    <= 4 * (Psi 0 - Pstar) / (eta * T) + 4 * floor / eta.
+```
+
+Thus persistent stochastic or fixed-tolerance errors lead to a certified
+stationarity/residual neighborhood rather than an unjustified pointwise zero
+limit.
+
+## 8. Claim boundary
 
 This layer still treats the local smoothness inequality itself as an analytic
 premise. It does not establish local smoothness for a concrete neural model and
-it does not add projected or stochastic main-variable dynamics. Its role is to
-machine-connect the deterministic algorithmic update to the previously verified
+it does not add projected or stochastic main-variable dynamics.  The coupling
+certificate also remains an explicit component-gradient premise for a concrete
+objective.  The role of this layer is to machine-connect the deterministic
+algorithmic update and selected value-gradient response to the verified
 certificate/Lyapunov theorem.
