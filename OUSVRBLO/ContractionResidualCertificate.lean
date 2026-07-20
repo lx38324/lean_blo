@@ -11,7 +11,7 @@ of the computable fixed-point residual `dist xi (step xi)`.
 theorem dist_le_fixedPoint_residual_of_contraction
     {Y : Type*} [PseudoMetricSpace Y]
     (step : Y → Y) (xi xistar : Y) (q : ℝ)
-    (hq_nonneg : 0 ≤ q) (hq_lt_one : q < 1)
+    (_hq_nonneg : 0 ≤ q) (hq_lt_one : q < 1)
     (hfixed : step xistar = xistar)
     (hcontract : ∀ u v, dist (step u) (step v) ≤ q * dist u v) :
     dist xi xistar ≤
@@ -68,7 +68,7 @@ theorem dist_sq_le_fixedPoint_residual_sq_of_contraction
 theorem eq_of_contraction_fixedPoints
     {Y : Type*} [MetricSpace Y]
     (step : Y → Y) (x y : Y) (q : ℝ)
-    (hq_nonneg : 0 ≤ q) (hq_lt_one : q < 1)
+    (_hq_nonneg : 0 ≤ q) (hq_lt_one : q < 1)
     (hx : step x = x) (hy : step y = y)
     (hcontract : ∀ u v, dist (step u) (step v) ≤ q * dist u v) :
     x = y := by
