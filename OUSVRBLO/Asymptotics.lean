@@ -8,6 +8,41 @@ namespace OUSVRBLO
 
 noncomputable section
 
+private theorem eta_quarter_nonneg {eta : ℝ} (heta : 0 < eta) :
+    0 ≤ eta / 4 :=
+  div_nonneg (le_of_lt heta) (by norm_num)
+
+private theorem eta_lam_sq_half_nonneg {eta lam : ℝ}
+    (heta : 0 < eta) :
+    0 ≤ eta * lam ^ 2 / 2 :=
+  div_nonneg (mul_nonneg (le_of_lt heta) (sq_nonneg lam)) (by norm_num)
+
+private theorem eta_lam_sq_CR_quarter_nonneg {eta lam CR : ℝ}
+    (heta : 0 < eta) (hCR : 0 < CR) :
+    0 ≤ eta * lam ^ 2 * CR / 4 :=
+  div_nonneg
+    (mul_nonneg (mul_nonneg (le_of_lt heta) (sq_nonneg lam))
+      (le_of_lt hCR))
+    (by norm_num)
+
+private theorem four_div_eta_nonneg {eta : ℝ} (heta : 0 < eta) :
+    0 ≤ 4 / eta :=
+  le_of_lt (div_pos (by norm_num) heta)
+
+private theorem four_div_eta_lam_sq_CR_nonneg {eta lam CR : ℝ}
+    (heta : 0 < eta) (hlam : 0 < lam) (hCR : 0 < CR) :
+    0 ≤ 4 / (eta * lam ^ 2 * CR) := by
+  have hlamSq : 0 < lam ^ 2 := sq_pos_of_ne_zero (ne_of_gt hlam)
+  have hden : 0 < eta * lam ^ 2 * CR :=
+    mul_pos (mul_pos heta hlamSq) hCR
+  exact le_of_lt (div_pos (by norm_num) hden)
+
+private theorem two_div_eta_lam_sq_nonneg {eta lam : ℝ}
+    (heta : 0 < eta) (hlam : 0 < lam) :
+    0 ≤ 2 / (eta * lam ^ 2) := by
+  have hlamSq : 0 < lam ^ 2 := sq_pos_of_ne_zero (ne_of_gt hlam)
+  exact le_of_lt (div_pos (by norm_num) (mul_pos heta hlamSq))
+
 /-- A nonnegative sequence with uniformly bounded partial sums has arithmetic
 averages converging to zero. -/
 theorem seq_average_tendsto_zero_of_bounded_partial_sums
@@ -44,8 +79,8 @@ theorem CertifiedSafetySystem.gradient_partial_sums_bounded
   intro T
   have hRsum : 0 ≤ SeqSum T S.R := by
     simpa [SeqSum] using Finset.sum_nonneg (fun t _ => S.R_nonneg t)
-  have hRcoef : 0 ≤ S.eta * S.lam ^ 2 * S.CR / 4 := by
-    positivity
+  have hRcoef : 0 ≤ S.eta * S.lam ^ 2 * S.CR / 4 :=
+    eta_lam_sq_CR_quarter_nonneg S.eta_pos S.CR_pos
   have hRterm :
       0 ≤ (S.eta * S.lam ^ 2 * S.CR / 4) * SeqSum T S.R :=
     mul_nonneg hRcoef hRsum
@@ -54,7 +89,7 @@ theorem CertifiedSafetySystem.gradient_partial_sums_bounded
   have hmain : (S.eta / 4) * SeqSum T S.Gsq ≤ M := by
     dsimp [CertifiedSafetySystem.accumulatedRhs] at hupper
     nlinarith [hbudget, hRterm, hupper]
-  have hscale : 0 ≤ 4 / S.eta := by positivity
+  have hscale : 0 ≤ 4 / S.eta := four_div_eta_nonneg S.eta_pos
   have hscaled := mul_le_mul_of_nonneg_left hmain hscale
   calc
     SeqSum T S.Gsq
@@ -72,7 +107,7 @@ theorem CertifiedSafetySystem.residual_partial_sums_bounded
   intro T
   have hGsum : 0 ≤ SeqSum T S.Gsq := by
     simpa [SeqSum] using Finset.sum_nonneg (fun t _ => S.Gsq_nonneg t)
-  have hGcoef : 0 ≤ S.eta / 4 := by positivity
+  have hGcoef : 0 ≤ S.eta / 4 := eta_quarter_nonneg S.eta_pos
   have hGterm : 0 ≤ (S.eta / 4) * SeqSum T S.Gsq :=
     mul_nonneg hGcoef hGsum
   have hbudget := S.cumulative_budget T
@@ -81,7 +116,8 @@ theorem CertifiedSafetySystem.residual_partial_sums_bounded
       (S.eta * S.lam ^ 2 * S.CR / 4) * SeqSum T S.R ≤ M := by
     dsimp [CertifiedSafetySystem.accumulatedRhs] at hupper
     nlinarith [hbudget, hGterm, hupper]
-  have hscale : 0 ≤ 4 / (S.eta * S.lam ^ 2 * S.CR) := by positivity
+  have hscale : 0 ≤ 4 / (S.eta * S.lam ^ 2 * S.CR) :=
+    four_div_eta_lam_sq_CR_nonneg S.eta_pos S.lam_pos S.CR_pos
   have hscaled := mul_le_mul_of_nonneg_left hmain hscale
   calc
     SeqSum T S.R
@@ -133,8 +169,10 @@ theorem CertifiedGainStepSystem.gradient_partial_sums_bounded
     simpa [SeqSum] using Finset.sum_nonneg (fun t _ => S.Gamma_nonneg t)
   have hRsum : 0 ≤ SeqSum T S.R := by
     simpa [SeqSum] using Finset.sum_nonneg (fun t _ => S.R_nonneg t)
-  have hGammaCoef : 0 ≤ S.eta * S.lam ^ 2 / 2 := by positivity
-  have hRcoef : 0 ≤ S.eta * S.lam ^ 2 * S.CR / 4 := by positivity
+  have hGammaCoef : 0 ≤ S.eta * S.lam ^ 2 / 2 :=
+    eta_lam_sq_half_nonneg S.eta_pos
+  have hRcoef : 0 ≤ S.eta * S.lam ^ 2 * S.CR / 4 :=
+    eta_lam_sq_CR_quarter_nonneg S.eta_pos S.CR_pos
   have hGammaTerm :
       0 ≤ (S.eta * S.lam ^ 2 / 2) * SeqSum T S.Gamma :=
     mul_nonneg hGammaCoef hGammaSum
@@ -146,7 +184,7 @@ theorem CertifiedGainStepSystem.gradient_partial_sums_bounded
   have hmain : (S.eta / 4) * SeqSum T S.Gsq ≤ M := by
     dsimp [CertifiedGainStepSystem.accumulatedRhs] at hupper
     nlinarith [hbudget, hGammaTerm, hRterm, hupper]
-  have hscale : 0 ≤ 4 / S.eta := by positivity
+  have hscale : 0 ≤ 4 / S.eta := four_div_eta_nonneg S.eta_pos
   have hscaled := mul_le_mul_of_nonneg_left hmain hscale
   calc
     SeqSum T S.Gsq
@@ -166,8 +204,9 @@ theorem CertifiedGainStepSystem.residual_partial_sums_bounded
     simpa [SeqSum] using Finset.sum_nonneg (fun t _ => S.Gsq_nonneg t)
   have hGammaSum : 0 ≤ SeqSum T S.Gamma := by
     simpa [SeqSum] using Finset.sum_nonneg (fun t _ => S.Gamma_nonneg t)
-  have hGcoef : 0 ≤ S.eta / 4 := by positivity
-  have hGammaCoef : 0 ≤ S.eta * S.lam ^ 2 / 2 := by positivity
+  have hGcoef : 0 ≤ S.eta / 4 := eta_quarter_nonneg S.eta_pos
+  have hGammaCoef : 0 ≤ S.eta * S.lam ^ 2 / 2 :=
+    eta_lam_sq_half_nonneg S.eta_pos
   have hGterm : 0 ≤ (S.eta / 4) * SeqSum T S.Gsq :=
     mul_nonneg hGcoef hGsum
   have hGammaTerm :
@@ -179,7 +218,8 @@ theorem CertifiedGainStepSystem.residual_partial_sums_bounded
       (S.eta * S.lam ^ 2 * S.CR / 4) * SeqSum T S.R ≤ M := by
     dsimp [CertifiedGainStepSystem.accumulatedRhs] at hupper
     nlinarith [hbudget, hGterm, hGammaTerm, hupper]
-  have hscale : 0 ≤ 4 / (S.eta * S.lam ^ 2 * S.CR) := by positivity
+  have hscale : 0 ≤ 4 / (S.eta * S.lam ^ 2 * S.CR) :=
+    four_div_eta_lam_sq_CR_nonneg S.eta_pos S.lam_pos S.CR_pos
   have hscaled := mul_le_mul_of_nonneg_left hmain hscale
   calc
     SeqSum T S.R
@@ -200,8 +240,9 @@ theorem CertifiedGainStepSystem.gain_partial_sums_bounded
     simpa [SeqSum] using Finset.sum_nonneg (fun t _ => S.Gsq_nonneg t)
   have hRsum : 0 ≤ SeqSum T S.R := by
     simpa [SeqSum] using Finset.sum_nonneg (fun t _ => S.R_nonneg t)
-  have hGcoef : 0 ≤ S.eta / 4 := by positivity
-  have hRcoef : 0 ≤ S.eta * S.lam ^ 2 * S.CR / 4 := by positivity
+  have hGcoef : 0 ≤ S.eta / 4 := eta_quarter_nonneg S.eta_pos
+  have hRcoef : 0 ≤ S.eta * S.lam ^ 2 * S.CR / 4 :=
+    eta_lam_sq_CR_quarter_nonneg S.eta_pos S.CR_pos
   have hGterm : 0 ≤ (S.eta / 4) * SeqSum T S.Gsq :=
     mul_nonneg hGcoef hGsum
   have hRterm :
@@ -213,7 +254,8 @@ theorem CertifiedGainStepSystem.gain_partial_sums_bounded
       (S.eta * S.lam ^ 2 / 2) * SeqSum T S.Gamma ≤ M := by
     dsimp [CertifiedGainStepSystem.accumulatedRhs] at hupper
     nlinarith [hbudget, hGterm, hRterm, hupper]
-  have hscale : 0 ≤ 2 / (S.eta * S.lam ^ 2) := by positivity
+  have hscale : 0 ≤ 2 / (S.eta * S.lam ^ 2) :=
+    two_div_eta_lam_sq_nonneg S.eta_pos S.lam_pos
   have hscaled := mul_le_mul_of_nonneg_left hmain hscale
   calc
     SeqSum T S.Gamma
