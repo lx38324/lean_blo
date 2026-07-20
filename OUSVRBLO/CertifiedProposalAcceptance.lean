@@ -51,19 +51,22 @@ def CertifiedProposalData.AcceptanceCondition
 
 /-- The actual accept/fallback decision generated from the certificates. -/
 def CertifiedProposalData.accept
-    (S : CertifiedProposalData) (t : ℕ) : Bool :=
-  decide (S.AcceptanceCondition t)
+    (S : CertifiedProposalData) (t : ℕ) : Bool := by
+  classical
+  exact decide (S.AcceptanceCondition t)
 
 @[simp]
 theorem CertifiedProposalData.accept_eq_true_iff
     (S : CertifiedProposalData) (t : ℕ) :
     S.accept t = true ↔ S.AcceptanceCondition t := by
+  classical
   simp [CertifiedProposalData.accept]
 
 @[simp]
 theorem CertifiedProposalData.accept_eq_false_iff
     (S : CertifiedProposalData) (t : ℕ) :
     S.accept t = false ↔ ¬ S.AcceptanceCondition t := by
+  classical
   simp [CertifiedProposalData.accept]
 
 /-- Certificate-generated decision packaged as the explicit selector. -/
