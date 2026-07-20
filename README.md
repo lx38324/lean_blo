@@ -40,6 +40,10 @@ base residual-to-error control + proxy calibration
 selected value-gradient vector + isometric ambient embedding
   => ||Err||^2 = lam^2 * eOnline
 
+fixed-penalty component gradients + value-gradient coupling
+  => G = gradOuter + lam * (gradLower - embed gradV)
+  => G + Err = gradOuter + lam * (gradLower - embed gradOnline)
+
 actual trajectory update + objective smoothness before substitution
   + contractive upper-variable block map
   => inexact descent and upper-block displacement control
@@ -54,6 +58,9 @@ all preceding certificates
   => finite-horizon stationarity/residual/gain budget
   => same-iterate O(1/T), O(epsilon^-2) gradient-norm complexity,
      and pointwise consequences under summable perturbations
+
+persistent uniformly bounded perturbations
+  => explicit stationarity/residual error floor
 ```
 
 The exact enhanced budget is
@@ -80,6 +87,13 @@ Aeta    = eta / (2 * sqrt 2 * lam) + LR * eta^2 / 2,
 betaEta = sqrt 2 * lam * eta + lam^2 * LR * eta^2.
 ```
 
+A transparent sufficient decomposition of the small-step condition is
+
+```text
+CR * sqrt(2) * lam * eta <= theta / 8,
+CR * lam^2 * LR * eta^2 <= theta / 8.
+```
+
 For summable certificate perturbations, one and the same iterate satisfies
 
 ```text
@@ -104,12 +118,31 @@ R t <= epsilon^2 / (lam^2 * CR).
 Thus the checked gradient-norm stationarity dependence is the standard
 `O(epsilon^-2)`.
 
+For persistent bounded errors, define
+
+```text
+weightedPerturbation t
+  = Ceps * eps t + Cb * b t + Cd * d t.
+```
+
+If `weightedPerturbation t <= floor` for every `t`, Lean proves
+
+```text
+exists t < T,
+  ||G t||^2 + lam^2 * CR * R t
+    <= 4 * (Psi 0 - Pstar) / (eta * T) + 4 * floor / eta.
+```
+
+This separates summable-error convergence from stochastic or fixed-tolerance
+neighborhood guarantees.
+
 ## Semantic and claim boundary
 
 Lean verifies the scalar coefficient accounting, explicit selector algebra,
 restricted-response sufficient conditions, trajectory substitution,
-fixed-penalty gradient composition, finite-horizon telescoping, same-iterate
-rates, and pointwise consequences.
+fixed-penalty gradient composition and value-gradient coupling, finite-horizon
+telescoping, same-iterate rates, pointwise consequences, and persistent-error
+floors.
 
 The selector built from inequalities over real numbers is a proof-level object in
 a `noncomputable` section.  The repository does not claim extraction of a
@@ -187,6 +220,8 @@ dependency graph.
 
 - `ManuscriptParameters.lean` and `ParameterBounds.lean`: exact constants and all
   coefficient bounds from the single small-step condition.
+- `ExplicitStepSize.lean`: split linear/quadratic sufficient conditions for the
+  manuscript small-step inequality.
 - `InexactDescent.lean`: Hilbert-space inexact descent.
 - `ResidualSmoothnessCertificate.lean` and `ResidualDrift.lean`: residual
   smoothness to gain-aware drift.
@@ -209,6 +244,10 @@ dependency graph.
 - `FixedPenaltyGradientSemantics.lean`: composes gradients for
   `outer + lam * (lower - value)` and generates the trajectory gradient
   certificate from its components.
+- `ValueGradientFixedPenaltyCoupling.lean`: proves that the represented value
+  gradient used by the error layer is the same value component occurring in the
+  fixed-penalty objective gradient, and rewrites the actual update with the
+  selected response gradient.
 
 ### Finite-time and asymptotic layers
 
@@ -220,6 +259,8 @@ dependency graph.
 - `PointwiseAsymptotics.lean`, `AnalyticPointwise.lean`,
   `EndToEndCorollaries.lean`, and `TrajectoryCertifiedProposalCorollaries.lean`:
   summability and pointwise stationarity/residual/gain conclusions.
+- `PersistentErrorFloor.lean`: average and same-iterate neighborhood bounds under
+  persistent uniformly bounded perturbations.
 
 The current mathematical statement and theorem map are in
 `docs/OUSVR_BLO_CERTIFIED_THEORY.md`; the exact coverage boundary is in
