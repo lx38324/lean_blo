@@ -39,6 +39,7 @@ import OUSVRBLO.EndToEndCorollaries
 import OUSVRBLO.TrajectoryCertifiedProposalCorollaries
 import OUSVRBLO.TrajectoryIterationComplexity
 import OUSVRBLO.TrajectoryGradientSemantics
+import OUSVRBLO.CesaroPerturbationCorollaries
 import OUSVRBLO.FixedPenaltyGradientSemantics
 import OUSVRBLO.ValueGradientFixedPenaltyCoupling
 import OUSVRBLO.AnalyticPointwise
