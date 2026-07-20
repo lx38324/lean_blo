@@ -15,7 +15,8 @@ theorem ResidualSafeguardSystem.eps_summable
     (S : ResidualSafeguardSystem)
     (hepsBase : Summable S.epsBase) (htau : Summable S.tau) :
     Summable S.eps := by
-  simpa [ResidualSafeguardSystem.eps] using hepsBase.add htau
+  change Summable (fun t => S.epsBase t + S.tau t)
+  exact hepsBase.add htau
 
 /-- One accepted round simultaneously has small stationarity and response
 residual, directly from the end-to-end certificate system. -/
@@ -31,7 +32,10 @@ theorem EndToEndCertifiedGainSystem.exists_joint_certificate
             (S.driftParameters.eta * (T : ℝ)) := by
   simpa [EndToEndCertifiedGainSystem.toCertifiedGainStepSystem,
     EndToEndCertifiedGainSystem.toSmoothResidualAnalyticGainSystem,
-    SmoothResidualAnalyticGainSystem.toAnalyticGainSystem] using
+    SmoothResidualAnalyticGainSystem.toAnalyticGainSystem,
+    AnalyticGainSystem.toCertifiedGainStepSystem,
+    AnalyticGainSystem.parameters,
+    DriftParameterization.toSafetyParameters] using
     S.toCertifiedGainStepSystem.exists_joint_certificate hT
 
 /-- Summable certificate perturbations give the same-iterate `O(1/T)`
@@ -54,7 +58,10 @@ theorem EndToEndCertifiedGainSystem.exists_joint_certificate_of_summable
     S.safeguard.eps_summable hepsBase htau
   simpa [EndToEndCertifiedGainSystem.toCertifiedGainStepSystem,
     EndToEndCertifiedGainSystem.toSmoothResidualAnalyticGainSystem,
-    SmoothResidualAnalyticGainSystem.toAnalyticGainSystem] using
+    SmoothResidualAnalyticGainSystem.toAnalyticGainSystem,
+    AnalyticGainSystem.toCertifiedGainStepSystem,
+    AnalyticGainSystem.parameters,
+    DriftParameterization.toSafetyParameters] using
     S.toCertifiedGainStepSystem.exists_joint_certificate_of_summable
       heps hb hd hT
 
@@ -73,7 +80,10 @@ theorem EndToEndCertifiedGainSystem.gradient_tendsto_zero_of_summable
     S.safeguard.eps_summable hepsBase htau
   simpa [EndToEndCertifiedGainSystem.toCertifiedGainStepSystem,
     EndToEndCertifiedGainSystem.toSmoothResidualAnalyticGainSystem,
-    SmoothResidualAnalyticGainSystem.toAnalyticGainSystem] using
+    SmoothResidualAnalyticGainSystem.toAnalyticGainSystem,
+    AnalyticGainSystem.toCertifiedGainStepSystem,
+    AnalyticGainSystem.parameters,
+    DriftParameterization.toSafetyParameters] using
     S.toCertifiedGainStepSystem.gradient_tendsto_zero_of_summable heps hb hd
 
 /-- Pointwise response-residual convergence under summable end-to-end
@@ -91,7 +101,10 @@ theorem EndToEndCertifiedGainSystem.residual_tendsto_zero_of_summable
     S.safeguard.eps_summable hepsBase htau
   simpa [EndToEndCertifiedGainSystem.toCertifiedGainStepSystem,
     EndToEndCertifiedGainSystem.toSmoothResidualAnalyticGainSystem,
-    SmoothResidualAnalyticGainSystem.toAnalyticGainSystem] using
+    SmoothResidualAnalyticGainSystem.toAnalyticGainSystem,
+    AnalyticGainSystem.toCertifiedGainStepSystem,
+    AnalyticGainSystem.parameters,
+    DriftParameterization.toSafetyParameters] using
     S.toCertifiedGainStepSystem.residual_tendsto_zero_of_summable heps hb hd
 
 /-- The per-round nonnegative certified gain also vanishes when the total
@@ -109,7 +122,10 @@ theorem EndToEndCertifiedGainSystem.gain_tendsto_zero_of_summable
     S.safeguard.eps_summable hepsBase htau
   simpa [EndToEndCertifiedGainSystem.toCertifiedGainStepSystem,
     EndToEndCertifiedGainSystem.toSmoothResidualAnalyticGainSystem,
-    SmoothResidualAnalyticGainSystem.toAnalyticGainSystem] using
+    SmoothResidualAnalyticGainSystem.toAnalyticGainSystem,
+    AnalyticGainSystem.toCertifiedGainStepSystem,
+    AnalyticGainSystem.parameters,
+    DriftParameterization.toSafetyParameters] using
     S.toCertifiedGainStepSystem.gain_tendsto_zero_of_summable heps hb hd
 
 end
