@@ -5,6 +5,7 @@ import OUSVRBLO.ManuscriptParameters
 import OUSVRBLO.SafeguardCertificate
 import OUSVRBLO.InexactDescent
 import OUSVRBLO.ResidualDrift
+import OUSVRBLO.ResidualSmoothnessCertificate
 import OUSVRBLO.SafetyDescent
 import OUSVRBLO.CertifiedSafety
 import OUSVRBLO.ImprovementDescent
