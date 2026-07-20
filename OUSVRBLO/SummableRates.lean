@@ -17,15 +17,15 @@ theorem CertifiedSafetySystem.gradient_average_bound_of_summable
       4 * S.summableRhs / (S.eta * (T : ℝ)) := by
   have hsum := S.gradient_partial_sums_bounded S.summableRhs
     (S.accumulatedRhs_le_summableRhs heps hb hd) T
-  have hscale : 0 ≤ 1 / (T : ℝ) := by positivity
-  have hscaled := mul_le_mul_of_nonneg_left hsum hscale
   have hTreal : 0 < (T : ℝ) := by exact_mod_cast hT
+  have hscale : 0 ≤ 1 / (T : ℝ) :=
+    le_of_lt (one_div_pos.mpr hTreal)
+  have hscaled := mul_le_mul_of_nonneg_left hsum hscale
   calc
     (1 / (T : ℝ)) * SeqSum T S.Gsq
         ≤ (1 / (T : ℝ)) * (4 * S.summableRhs / S.eta) := hscaled
     _ = 4 * S.summableRhs / (S.eta * (T : ℝ)) := by
           field_simp [ne_of_gt S.eta_pos, ne_of_gt hTreal]
-          ring
 
 /-- Explicit `O(1 / T)` residual bound under summable safety perturbations. -/
 theorem CertifiedSafetySystem.residual_average_bound_of_summable
@@ -37,9 +37,10 @@ theorem CertifiedSafetySystem.residual_average_bound_of_summable
         (S.eta * S.lam ^ 2 * S.CR * (T : ℝ)) := by
   have hsum := S.residual_partial_sums_bounded S.summableRhs
     (S.accumulatedRhs_le_summableRhs heps hb hd) T
-  have hscale : 0 ≤ 1 / (T : ℝ) := by positivity
-  have hscaled := mul_le_mul_of_nonneg_left hsum hscale
   have hTreal : 0 < (T : ℝ) := by exact_mod_cast hT
+  have hscale : 0 ≤ 1 / (T : ℝ) :=
+    le_of_lt (one_div_pos.mpr hTreal)
+  have hscaled := mul_le_mul_of_nonneg_left hsum hscale
   calc
     (1 / (T : ℝ)) * SeqSum T S.R
         ≤ (1 / (T : ℝ)) *
@@ -48,7 +49,6 @@ theorem CertifiedSafetySystem.residual_average_bound_of_summable
           (S.eta * S.lam ^ 2 * S.CR * (T : ℝ)) := by
             field_simp [ne_of_gt S.eta_pos, ne_of_gt S.lam_pos,
               ne_of_gt S.CR_pos, ne_of_gt hTreal]
-            ring
 
 /-- Best-iterate finite-time stationarity under summable safety perturbations. -/
 theorem CertifiedSafetySystem.exists_stationary_iterate_of_summable
@@ -70,7 +70,12 @@ theorem CertifiedGainStepSystem.gradient_gain_average_bound_of_summable
       ≤ 4 * S.summableRhs / (S.eta * (T : ℝ)) := by
   have hRsum : 0 ≤ SeqSum T S.R := by
     simpa [SeqSum] using Finset.sum_nonneg (fun t _ => S.R_nonneg t)
-  have hRcoef : 0 ≤ S.eta * S.lam ^ 2 * S.CR / 4 := by positivity
+  have hRcoef : 0 ≤ S.eta * S.lam ^ 2 * S.CR / 4 := by
+    exact div_nonneg
+      (mul_nonneg
+        (mul_nonneg (le_of_lt S.eta_pos) (sq_nonneg S.lam))
+        (le_of_lt S.CR_pos))
+      (by norm_num)
   have hRterm :
       0 ≤ (S.eta * S.lam ^ 2 * S.CR / 4) * SeqSum T S.R :=
     mul_nonneg hRcoef hRsum
@@ -83,7 +88,10 @@ theorem CertifiedGainStepSystem.gradient_gain_average_bound_of_summable
     dsimp [CertifiedGainStepSystem.accumulatedRhs] at hupper
     nlinarith [hbudget, hRterm, hupper]
   have hTreal : 0 < (T : ℝ) := by exact_mod_cast hT
-  have hscale : 0 ≤ 4 / (S.eta * (T : ℝ)) := by positivity
+  have hden_pos : 0 < S.eta * (T : ℝ) :=
+    mul_pos S.eta_pos hTreal
+  have hscale : 0 ≤ 4 / (S.eta * (T : ℝ)) :=
+    le_of_lt (div_pos (by norm_num) hden_pos)
   have hscaled := mul_le_mul_of_nonneg_left hjoint hscale
   calc
     (1 / (T : ℝ)) * SeqSum T S.Gsq
@@ -106,9 +114,10 @@ theorem CertifiedGainStepSystem.residual_average_bound_of_summable
         (S.eta * S.lam ^ 2 * S.CR * (T : ℝ)) := by
   have hsum := S.residual_partial_sums_bounded S.summableRhs
     (S.accumulatedRhs_le_summableRhs heps hb hd) T
-  have hscale : 0 ≤ 1 / (T : ℝ) := by positivity
-  have hscaled := mul_le_mul_of_nonneg_left hsum hscale
   have hTreal : 0 < (T : ℝ) := by exact_mod_cast hT
+  have hscale : 0 ≤ 1 / (T : ℝ) :=
+    le_of_lt (one_div_pos.mpr hTreal)
+  have hscaled := mul_le_mul_of_nonneg_left hsum hscale
   calc
     (1 / (T : ℝ)) * SeqSum T S.R
         ≤ (1 / (T : ℝ)) *
@@ -117,7 +126,6 @@ theorem CertifiedGainStepSystem.residual_average_bound_of_summable
           (S.eta * S.lam ^ 2 * S.CR * (T : ℝ)) := by
             field_simp [ne_of_gt S.eta_pos, ne_of_gt S.lam_pos,
               ne_of_gt S.CR_pos, ne_of_gt hTreal]
-            ring
 
 /-- Best-iterate stationarity for the certified-gain system under summable errors. -/
 theorem CertifiedGainStepSystem.exists_stationary_iterate_of_summable
@@ -129,9 +137,14 @@ theorem CertifiedGainStepSystem.exists_stationary_iterate_of_summable
   have hjoint := S.gradient_gain_average_bound_of_summable heps hb hd hT
   have hGammaSum : 0 ≤ SeqSum T S.Gamma := by
     simpa [SeqSum] using Finset.sum_nonneg (fun t _ => S.Gamma_nonneg t)
+  have hTreal : 0 < (T : ℝ) := by exact_mod_cast hT
+  have hInvT : 0 ≤ 1 / (T : ℝ) :=
+    le_of_lt (one_div_pos.mpr hTreal)
   have hGammaAverage :
       0 ≤ 2 * S.lam ^ 2 * ((1 / (T : ℝ)) * SeqSum T S.Gamma) := by
-    positivity
+    exact mul_nonneg
+      (mul_nonneg (by norm_num) (sq_nonneg S.lam))
+      (mul_nonneg hInvT hGammaSum)
   have havg :
       (1 / (T : ℝ)) * SeqSum T S.Gsq ≤
         4 * S.summableRhs / (S.eta * (T : ℝ)) := by
