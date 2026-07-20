@@ -88,7 +88,8 @@ theorem CertifiedGainStepSystem.cesaroRhs_tendsto_zero
         + (4 * S.Cb / S.eta) * CesaroAverage S.b T
         + (4 * S.Cd / S.eta) * CesaroAverage S.d T)
     atTop (𝓝 0)
-  exact ((hgap.add heps').add hb').add hd'
+  simpa only [zero_add, add_zero] using
+    (((hgap.add heps').add hb').add hd')
 
 /-- Vanishing perturbation averages imply vanishing average joint
 stationarity/residual performance.  No summability premise is required. -/
