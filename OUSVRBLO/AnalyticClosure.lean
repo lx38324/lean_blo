@@ -12,9 +12,9 @@ noncomputable section
 /--
 Sequence-level analytic assumptions for the fallback-safe theorem.
 
-This structure sits above the scalar Lyapunov core.  It stores the Hilbert-space
+This structure sits above the scalar Lyapunov core. It stores the Hilbert-space
 gradient and error vectors, the smoothness inequality obtained after substituting
-the algorithmic update, and the raw residual-compatibility inequality.  The
+the algorithmic update, and the raw residual-compatibility inequality. The
 constructor below derives the one-step scalar `descent` and `drift` fields rather
 than asking a user to provide them directly.
 -/
@@ -89,8 +89,7 @@ theorem AnalyticSafetySystem.descent_interface
   exact inexact_gradient_descent_with_error_bound
     (S.P t) (S.P (t + 1)) S.driftParameters.eta S.LP
     S.driftParameters.lam S.CR (S.Q t) (S.b t) (S.G t) (S.Err t)
-    (le_of_lt S.driftParameters.eta_pos)
-    (le_of_lt S.driftParameters.lam_pos) S.step_size (S.smooth_step t)
+    (le_of_lt S.driftParameters.eta_pos) S.step_size (S.smooth_step t)
     (S.error_bound t)
 
 /-- The raw residual compatibility inequality, Young's inequality, and the
@@ -103,7 +102,7 @@ theorem AnalyticSafetySystem.drift_interface
         + 2 * S.driftParameters.Aeta * ‖S.G t‖ ^ 2
         + S.driftParameters.beta * S.b t
         + S.d t := by
-  let D : SafeResidualDriftScalar where
+  let D : SafeResidualDriftScalar := {
     eta := S.driftParameters.eta
     lam := S.driftParameters.lam
     mu := S.driftParameters.mu
@@ -130,6 +129,7 @@ theorem AnalyticSafetySystem.drift_interface
     raw_drift := S.raw_drift t
     step_sq_bound := S.step_sq_bound t
     error_bound := S.error_bound t
+  }
   simpa [D, SafeResidualDriftScalar.Aeta, SafeResidualDriftScalar.beta,
     SafeResidualDriftScalar.toCertified, CertifiedResidualDriftScalar.Aeta,
     CertifiedResidualDriftScalar.beta, CertifiedResidualDriftScalar.parameters]
