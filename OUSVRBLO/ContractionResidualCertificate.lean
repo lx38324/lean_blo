@@ -20,11 +20,12 @@ theorem dist_le_fixedPoint_residual_of_contraction
       dist xi xistar ≤ dist xi (step xi) + dist (step xi) xistar :=
     dist_triangle xi (step xi) xistar
   have hstep : dist (step xi) xistar ≤ q * dist xi xistar := by
-    rw [← hfixed]
-    exact hcontract xi xistar
+    calc
+      dist (step xi) xistar = dist (step xi) (step xistar) := by rw [hfixed]
+      _ ≤ q * dist xi xistar := hcontract xi xistar
   have hraw :
       dist xi xistar ≤ dist xi (step xi) + q * dist xi xistar :=
-    htri.trans (add_le_add_left hstep _)
+    htri.trans (add_le_add le_rfl hstep)
   have hlinear :
       (1 - q) * dist xi xistar ≤ dist xi (step xi) := by
     linarith
@@ -62,7 +63,6 @@ theorem dist_sq_le_fixedPoint_residual_sq_of_contraction
         ≤ ((1 / (1 - q)) * dist xi (step xi)) ^ 2 := hsquare
     _ = (1 / (1 - q) ^ 2) * dist xi (step xi) ^ 2 := by
           field_simp [ne_of_gt hgap_pos]
-          ring
 
 /-- A contraction has at most one fixed point. -/
 theorem eq_of_contraction_fixedPoints
@@ -73,8 +73,9 @@ theorem eq_of_contraction_fixedPoints
     (hcontract : ∀ u v, dist (step u) (step v) ≤ q * dist u v) :
     x = y := by
   have hdist : dist x y ≤ q * dist x y := by
-    rw [← hx, ← hy]
-    exact hcontract x y
+    calc
+      dist x y = dist (step x) (step y) := by rw [hx, hy]
+      _ ≤ q * dist x y := hcontract x y
   have hzero : dist x y = 0 := by
     have hnonneg : 0 ≤ dist x y := dist_nonneg
     nlinarith
