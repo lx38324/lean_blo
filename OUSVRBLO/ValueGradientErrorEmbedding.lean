@@ -114,21 +114,19 @@ theorem ValueGradientProposalData.selector_eOnline
     {V : Type*} [NormedAddCommGroup V]
     (S : ValueGradientProposalData V) (t : ℕ) :
     S.selector.eOnline t = ‖S.valueGradientError t‖ ^ 2 := by
+  change
+    (if S.toCertifiedProposalData.accept t = true then
+        S.eProp t
+      else S.eBase t) =
+      ‖S.gradV t -
+          (if S.toCertifiedProposalData.accept t = true then
+            S.gradProp t
+          else S.gradBase t)‖ ^ 2
   cases hacc : S.toCertifiedProposalData.accept t with
   | false =>
-      simp [ValueGradientProposalData.selector,
-        ValueGradientProposalData.toCertifiedProposalData,
-        AcceptedResponseSelector.eOnline,
-        ValueGradientProposalData.valueGradientError,
-        ValueGradientProposalData.gradOnline,
-        ValueGradientProposalData.eBase, hacc]
+      simp [hacc, ValueGradientProposalData.eBase]
   | true =>
-      simp [ValueGradientProposalData.selector,
-        ValueGradientProposalData.toCertifiedProposalData,
-        AcceptedResponseSelector.eOnline,
-        ValueGradientProposalData.valueGradientError,
-        ValueGradientProposalData.gradOnline,
-        ValueGradientProposalData.eProp, hacc]
+      simp [hacc, ValueGradientProposalData.eProp]
 
 /-- Embed the signed value-gradient error into the ambient update space and
 multiply by the fixed penalty parameter. -/
