@@ -8,6 +8,18 @@ value surrogate under explicit analytic interfaces.
 ## Primary checked chain
 
 ```text
+restricted minimizer + differentiable stationary response branch
+  => local value derivative equals the x-partial derivative
+
+quadratic growth or strong monotonicity
+  => unique represented response + response-distance error bound
+
+response-gradient Lipschitzness
+  => residual controls value-gradient approximation error
+
+proximal regularization dominating local negative curvature
+  => strong monotonicity of the regularized lower-gradient residual
+
 safe base contraction + accepted-response tolerance
   => common residual certificate envelope Q
 
@@ -25,7 +37,8 @@ CR * beta <= theta / 4
 
 one-step descent + drift + envelope contraction
   => finite-horizon stationarity, residual, and gain budgets
-  => averaged, best-iterate, bounded-budget, and summable-error guarantees
+  => averaged, best-iterate, bounded-budget, summable-error, and explicit O(1/T)
+     guarantees
 ```
 
 The exact enhanced budget is
@@ -54,21 +67,24 @@ betaEta = sqrt 2 * lam * eta + lam^2 * LR * eta^2.
 
 ## Claim boundary
 
-Lean checks coefficient accounting, residual safeguard closure, calibrated
-proxy algebra, Hilbert-space inexact-descent algebra, scalar residual-drift
-propagation, finite-horizon telescoping, averaged and best-iterate corollaries,
-and average convergence under uniformly bounded or summable perturbation
-budgets.
+Lean checks coefficient accounting, restricted-response uniqueness under stated
+local certificates, the differentiable branch-envelope identity,
+residual-to-value-gradient sufficient conditions, proximal strong-monotonicity
+accounting, residual safeguard closure, calibrated proxy algebra,
+Hilbert-space inexact-descent algebra, scalar residual-drift propagation,
+finite-horizon telescoping, averaged and best-iterate corollaries, and explicit
+rates under uniformly bounded or summable perturbation budgets.
 
-The repository does not prove that a real LLM/LoRA training system
-automatically satisfies local smoothness, residual-to-value-gradient control,
-or raw residual compatibility. It also does not prove general nonconvex BLO
-global convergence, original BLO KKT convergence, projected/stochastic training
-correctness, or convergence of the iterates to a unique point.
+The repository does not prove that a real LLM/LoRA training system automatically
+satisfies the local smoothness, hypomonotonicity, response differentiability, or
+raw residual-compatibility premises. It also does not prove general nonconvex
+BLO global convergence, original BLO KKT convergence, projected/stochastic
+training correctness, or convergence of the iterates to a unique point.
 
 The value-response model is restricted/local: an arbitrary local response is
 not identified with the global value function of the original nonconvex lower
-problem.
+problem.  The local branch-envelope result is not a general nonsmooth or
+set-valued Danskin theorem.
 
 ## Build
 
@@ -112,10 +128,24 @@ bash scripts/check_no_placeholder.sh
 - `OUSVRBLO/SummableCorollaries.lean`: derives the bounded accumulated budget
   from summable nonnegative perturbations and gives direct average-convergence
   theorems.
+- `OUSVRBLO/SummableRates.lean`: explicit `O(1 / T)` average and best-iterate
+  bounds under summable perturbations.
+- `OUSVRBLO/LocalSurrogate.lean`: restricted minimizer and abstract
+  value-gradient interface boundary.
+- `OUSVRBLO/RestrictedEnvelope.lean`: quadratic-growth uniqueness and local
+  differentiable branch-envelope theorem.
+- `OUSVRBLO/ResponseErrorBound.lean`: response-distance and objective-gap
+  sufficient conditions for R2.
+- `OUSVRBLO/StrongMonotonicityCertificate.lean`: lower-gradient residual error
+  bounds and response uniqueness from strong monotonicity.
+- `OUSVRBLO/ProximalResponseCertificate.lean`: proximal regularization dominates
+  local negative curvature and produces a computable R2 residual certificate.
+- `OUSVRBLO/QuadraticResponseExample.lean`: concrete scalar model showing the
+  restricted response and R2 assumptions are jointly satisfiable.
 - `OUSVRBLO/SafetyDescent.lean`: reusable low-level scalar algebraic core.
 - `OUSVRBLO/ImprovementDescent.lean`: legacy nominal-improvement formulation.
 - `OUSVRBLO/LyapunovBudget.lean`: budget structures and averaged consequences.
-- `OUSVRBLO/LocalSurrogate.lean`: restricted minimizer and value-gradient
-  interface boundary.
 - `docs/OUSVR_BLO_CERTIFIED_THEORY.md`: revised theorem and Lean theorem map.
+- `docs/RESTRICTED_RESPONSE_CERTIFICATES.md`: local response, envelope, and R2
+  certificate derivations.
 - `docs/FORMALIZATION_SCOPE.md`: precise manuscript-to-Lean coverage boundary.
