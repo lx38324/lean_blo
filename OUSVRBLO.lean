@@ -19,3 +19,4 @@ import OUSVRBLO.AnalyticInterfaces
 import OUSVRBLO.LocalSurrogate
 import OUSVRBLO.RestrictedEnvelope
 import OUSVRBLO.ResponseErrorBound
+import OUSVRBLO.QuadraticResponseExample
