@@ -13,8 +13,8 @@ theorem affine_residual_scale_mono
   have hscaled := mul_le_mul_of_nonneg_right hC hQ
   linarith
 
-/-- Two independently calibrated affine residual scales admit a common scale
-formed by taking the maximum coefficient and maximum bias. -/
+/-- Two independently calibrated affine residual scales are both dominated by a
+common scale formed from the maximum coefficient and maximum bias. -/
 theorem two_affine_residual_scales_le_common_max
     (Q C₁ C₂ b₁ b₂ : ℝ) (hQ : 0 ≤ Q) :
     C₁ * Q + b₁ ≤ max C₁ C₂ * Q + max b₁ b₂ ∧
