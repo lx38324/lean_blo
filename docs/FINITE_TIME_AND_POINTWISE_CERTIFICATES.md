@@ -1,427 +1,316 @@
-# Finite-time, joint, pointwise, and error-floor certificates
+# Finite-time and perturbation-regime certificates
 
-This note records the consequence layer of the OUSVR-BLO certified Lyapunov
-budget.  It distinguishes four logically different statements:
+## 1. Finite-horizon Lyapunov budget
 
-1. averaged finite-horizon bounds;
-2. one-iterate certificates on the same round;
-3. pointwise convergence under summable perturbations;
-4. stationarity/residual neighborhoods under persistent bounded perturbations.
-
-The distinction matters because the uncertainty-adjusted gain `Gamma_t` is a
-favorable budget term, not an error quantity that should be minimized.
-
-## 1. Accumulated right-hand sides
-
-For the fallback-safe system define
-
-$$
-\mathcal B_T
-=
-\Psi_0-P_\star
-+C_\varepsilon\sum_{t<T}\varepsilon_t
-+C_b\sum_{t<T}b_t
-+C_d\sum_{t<T}d_t.
-$$
-
-The checked safety budget is
-
-$$
-\frac{\eta}{4}\sum_{t<T}G_t^2
-+
-\frac{\eta\lambda^2C_R}{4}\sum_{t<T}R_t
-\le
-\mathcal B_T.
-$$
-
-For the certified-gain system the simplified checked budget is
-
-$$
-\frac{\eta}{4}\sum_{t<T}G_t^2
-+
-\frac{\eta\lambda^2}{2}\sum_{t<T}\Gamma_t
-+
-\frac{\eta\lambda^2C_R}{4}\sum_{t<T}R_t
-\le
-\mathcal B_T.
-$$
-
-The exact gain coefficient is larger:
-
-$$
-C_\Gamma
-=
-\frac{\eta\lambda^2}{2}
-+2\alpha A_\eta\lambda^2,
-\qquad
-\frac{\eta\lambda^2}{2}
-\le C_\Gamma
-\le\frac34\eta\lambda^2.
-$$
-
-## 2. Same-iterate safety certificate
-
-Define the nonnegative joint performance measure
-
-$$
-\mathcal J_t
-:=
-G_t^2+\lambda^2C_RR_t.
-$$
-
-The finite-horizon budget gives
-
-$$
-\frac1T\sum_{t<T}\mathcal J_t
-\le
-\frac{4\mathcal B_T}{\eta T}.
-$$
-
-Since a finite average is at least its minimum, Lean verifies the existence of a
-single round `t<T` satisfying
-
-$$
-\boxed{
-G_t^2+\lambda^2C_RR_t
-\le
-\frac{4\mathcal B_T}{\eta T}.
-}
-$$
-
-This is stronger than separately stating that one round has small stationarity
-and possibly another round has small residual.  The same accepted-response round
-satisfies both controls.
-
-Lean declarations:
+For the certified-gain system, define
 
 ```text
-CertifiedSafetySystem.jointMeasure
-CertifiedSafetySystem.joint_average_bound
-CertifiedSafetySystem.exists_joint_certificate
+B_T = Psi_0 - Pstar
+      + Ceps * sum_(t<T) eps_t
+      + Cb * sum_(t<T) b_t
+      + Cd * sum_(t<T) d_t.
 ```
 
-## 3. Same-iterate certified-gain performance certificate
+The simplified checked budget is
 
-For the enhanced system, the performance measure remains
+```text
+eta/4 * sum_(t<T) Gsq_t
+  + eta * lambda^2 / 2 * sum_(t<T) Gamma_t
+  + eta * lambda^2 * CR / 4 * sum_(t<T) R_t
+  <= B_T.
+```
 
-$$
-\mathcal J_t
-=
-G_t^2+\lambda^2C_RR_t.
-$$
+The exact gain coefficient is
 
-The nonnegative favorable term `Gamma_t` may be dropped from the Lyapunov budget,
-so Lean verifies
+```text
+Cgain = eta * lambda^2 / 2 + 2 * alpha * Aeta * lambda^2,
+eta * lambda^2 / 2 <= Cgain <= 3/4 * eta * lambda^2.
+```
 
-$$
-\boxed{
-\exists t<T:\quad
-G_t^2+\lambda^2C_RR_t
-\le
-\frac{4\mathcal B_T}{\eta T}.
-}
-$$
+`Gamma_t` is a favorable term. It is retained in the Lyapunov accounting but is
+not treated as an optimization error that should be minimized.
 
-Lean declarations:
+## 2. Same-iterate certificate
+
+Define
+
+```text
+J_t = Gsq_t + lambda^2 * CR * R_t.
+```
+
+The finite-horizon theorem gives
+
+```text
+average_(t<T) J_t <= 4 * B_T / (eta * T).
+```
+
+Therefore one and the same round satisfies
+
+```text
+exists t < T,
+  Gsq_t + lambda^2 * CR * R_t
+    <= 4 * B_T / (eta * T).
+```
+
+This is stronger than separate existence statements for stationarity and
+residual control, because both properties hold at the same accepted-response
+round.
+
+When a trajectory gradient certificate is supplied,
+
+```text
+Gsq_t = ||gradient P(z_t)||^2.
+```
+
+Hence the certificate can be stated directly with the actual fixed-penalty
+objective gradient.
+
+Principal Lean declarations:
 
 ```text
 CertifiedGainStepSystem.jointMeasure
 CertifiedGainStepSystem.joint_average_bound
 CertifiedGainStepSystem.exists_joint_certificate
+TrajectoryCertifiedProposalGainSystem.exists_objective_gradient_joint_certificate
 ```
 
-The full expression
+## 3. Explicit gradient-norm complexity under summable errors
 
-$$
-G_t^2+2\lambda^2\Gamma_t+\lambda^2C_RR_t
-$$
-
-is retained separately as `budgetDensity`.  Its average is bounded by
-`4 * B_T / (eta * T)`, but it is not presented as a performance metric: a large
-nonnegative `Gamma_t` is an accepted certified improvement, not an optimization
-error.
-
-Lean declaration:
+Assume the nonnegative perturbation sequences are summable:
 
 ```text
-CertifiedGainStepSystem.budgetDensity_average_bound
+sum_t eps_t < infinity,
+sum_t b_t   < infinity,
+sum_t d_t   < infinity.
 ```
 
-## 4. Explicit rates under summable perturbations
-
-Assume
-
-$$
-\sum_{t=0}^\infty\varepsilon_t<\infty,
-\qquad
-\sum_{t=0}^\infty b_t<\infty,
-\qquad
-\sum_{t=0}^\infty d_t<\infty.
-$$
-
-Define the finite constant
-
-$$
-\mathcal B_\infty
-:=
-\Psi_0-P_\star
-+C_\varepsilon\sum_{t=0}^\infty\varepsilon_t
-+C_b\sum_{t=0}^\infty b_t
-+C_d\sum_{t=0}^\infty d_t.
-$$
-
-Lean verifies the explicit rates
-
-$$
-\frac1T\sum_{t<T}G_t^2
-\le
-\frac{4\mathcal B_\infty}{\eta T},
-$$
-
-$$
-\frac1T\sum_{t<T}R_t
-\le
-\frac{4\mathcal B_\infty}{\eta\lambda^2C_RT},
-$$
-
-and, for the enhanced system,
-
-$$
-\frac1T\sum_{t<T}G_t^2
-+
-\frac{2\lambda^2}{T}\sum_{t<T}\Gamma_t
-\le
-\frac{4\mathcal B_\infty}{\eta T}.
-$$
-
-The same-iterate form is
-
-$$
-\boxed{
-\exists t<T:\quad
-G_t^2+\lambda^2C_RR_t
-\le
-\frac{4\mathcal B_\infty}{\eta T}.
-}
-$$
-
-Lean files:
+Define
 
 ```text
-SummableRates.lean
-JointCertificates.lean
+B_infinity = Psi_0 - Pstar
+  + Ceps * sum_t eps_t
+  + Cb * sum_t b_t
+  + Cd * sum_t d_t.
 ```
 
-## 5. Pointwise convergence under summable perturbations
+Lean proves
 
-The finite accumulated budget bounds the nonnegative partial sums.  Under the
-summable perturbation premise, Lean derives
+```text
+exists t < T,
+  Gsq_t + lambda^2 * CR * R_t
+    <= 4 * B_infinity / (eta * T).
+```
 
-$$
-\sum_{t=0}^\infty G_t^2<\infty,
-\qquad
-\sum_{t=0}^\infty R_t<\infty.
-$$
+For a gradient-norm target `epsilon >= 0`, the horizon condition
+
+```text
+4 * B_infinity <= epsilon^2 * eta * T
+```
+
+implies
+
+```text
+exists t < T,
+  ||gradient P(z_t)|| <= epsilon,
+  R_t <= epsilon^2 / (lambda^2 * CR).
+```
+
+Thus the checked dependence for gradient-norm stationarity is
+`O(epsilon^-2)`.
+
+Principal Lean declarations:
+
+```text
+CertifiedGainStepSystem.exists_joint_certificate_of_summable
+TrajectoryCertifiedProposalGainSystem.exists_objective_gradient_joint_certificate_of_summable
+TrajectoryCertifiedProposalGainSystem.exists_objective_gradient_norm_and_scaled_residual_le_of_summable
+```
+
+## 4. Pointwise conclusions under summable errors
+
+The finite budget bounds partial sums of the nonnegative sequences. Lean derives
+
+```text
+sum_t Gsq_t < infinity,
+sum_t R_t < infinity,
+sum_t Gamma_t < infinity.
+```
 
 Consequently
 
-$$
-G_t^2\to0,
-\qquad
-R_t\to0.
-$$
+```text
+Gsq_t -> 0,
+R_t -> 0,
+Gamma_t -> 0.
+```
 
-For the certified-gain system Lean additionally proves
-
-$$
-\sum_{t=0}^\infty\Gamma_t<\infty,
-\qquad
-\Gamma_t\to0.
-$$
-
-The last statement is a finite-budget consequence.  It does not say that small
-certified gain is an algorithmic objective; it says that a uniformly positive
-per-round gain cannot persist forever while the Lyapunov function is lower
-bounded and perturbations are summable.
-
-Lean declarations include:
+At the Hilbert-space trajectory level,
 
 ```text
-CertifiedSafetySystem.gradient_summable_of_summable
-CertifiedSafetySystem.residual_summable_of_summable
-CertifiedSafetySystem.gradient_tendsto_zero_of_summable
-CertifiedSafetySystem.residual_tendsto_zero_of_summable
+||G_t|| -> 0.
+```
 
-CertifiedGainStepSystem.gradient_summable_of_summable
-CertifiedGainStepSystem.residual_summable_of_summable
-CertifiedGainStepSystem.gain_summable_of_summable
-CertifiedGainStepSystem.gradient_tendsto_zero_of_summable
-CertifiedGainStepSystem.residual_tendsto_zero_of_summable
-CertifiedGainStepSystem.gain_tendsto_zero_of_summable
+With the objective-gradient certificate,
+
+```text
+||gradient P(z_t)|| -> 0.
+```
+
+The conclusion `Gamma_t -> 0` is a finite-budget consequence for a nonnegative
+favorable term; it does not make small gain a performance goal.
+
+These pointwise conclusions still do not imply convergence of `z_t` to a unique
+point.
+
+## 5. Cesaro-vanishing perturbations
+
+Summability is stronger than necessary for average convergence. Define
+
+```text
+CesaroAverage(a, T) = (1/T) * sum_(t<T) a_t.
+```
+
+Suppose
+
+```text
+CesaroAverage(eps, T) -> 0,
+CesaroAverage(b, T)   -> 0,
+CesaroAverage(d, T)   -> 0.
+```
+
+Lean rewrites the finite-horizon theorem as
+
+```text
+CesaroAverage(J, T)
+  <= 4 * (Psi_0 - Pstar) / (eta * T)
+     + 4 * Ceps / eta * CesaroAverage(eps, T)
+     + 4 * Cb / eta * CesaroAverage(b, T)
+     + 4 * Cd / eta * CesaroAverage(d, T).
+```
+
+Therefore
+
+```text
+CesaroAverage(J, T)   -> 0,
+CesaroAverage(Gsq, T) -> 0,
+CesaroAverage(R, T)   -> 0.
+```
+
+For the explicit safeguard,
+
+```text
+eps_t = epsBase_t + tauR_t.
+```
+
+Thus Cesaro-vanishing averages of `epsBase_t` and `tauR_t` imply a
+Cesaro-vanishing total envelope error. At the trajectory level Lean obtains
+
+```text
+average_(t<T) ||G_t||^2 -> 0,
+average_(t<T) R_t       -> 0.
+```
+
+With an objective-gradient certificate,
+
+```text
+average_(t<T) ||gradient P(z_t)||^2 -> 0.
+```
+
+These are average convergence results only. Cesaro-vanishing perturbations do
+not by themselves imply pointwise convergence or summability.
+
+Principal Lean file:
+
+```text
+OUSVRBLO/CesaroPerturbationCorollaries.lean
 ```
 
 ## 6. Persistent bounded perturbations
 
-Summability is stronger than what is available in many stochastic or
-fixed-tolerance regimes.  Define the one-round weighted perturbation
+Define the one-round weighted perturbation
 
-$$
-\delta_t
-:=
-C_\varepsilon\varepsilon_t
-+C_bb_t
-+C_dd_t.
-$$
+```text
+delta_t = Ceps * eps_t + Cb * b_t + Cd * d_t.
+```
 
 Suppose
 
-$$
-\delta_t\le\bar\delta
-\quad\text{for every }t.
-$$
-
-Lean first proves
-
-$$
-\mathcal B_T
-\le
-\Psi_0-P_\star+T\bar\delta.
-$$
-
-Substituting this into the joint average bound gives
-
-$$
-\boxed{
-\frac1T\sum_{t<T}
-\left(
-G_t^2+\lambda^2C_RR_t
-\right)
-\le
-\frac{4(\Psi_0-P_\star)}{\eta T}
-+
-\frac{4\bar\delta}{\eta}.
-}
-$$
-
-The best-iterate principle yields
-
-$$
-\boxed{
-\exists t<T:\quad
-G_t^2+\lambda^2C_RR_t
-\le
-\frac{4(\Psi_0-P_\star)}{\eta T}
-+
-\frac{4\bar\delta}{\eta}.
-}
-$$
-
-Thus the transient term decays as `O(1/T)`, while persistent certificate errors
-produce the explicit floor
-
-$$
-\frac{4\bar\delta}{\eta}.
-$$
-
-Separate uniform bounds
-
-$$
-\varepsilon_t\le\bar\varepsilon,
-\qquad
-b_t\le\bar b,
-\qquad
-d_t\le\bar d
-$$
-
-imply
-
-$$
-\delta_t
-\le
-C_\varepsilon\bar\varepsilon
-+C_b\bar b
-+C_d\bar d.
-$$
-
-Lean declarations:
-
 ```text
-CertifiedGainStepSystem.weightedPerturbation
-CertifiedGainStepSystem.accumulatedRhs_le_gap_add_error_floor
-CertifiedGainStepSystem.joint_average_bound_of_error_floor
-CertifiedGainStepSystem.exists_joint_certificate_of_error_floor
-CertifiedGainStepSystem.weightedPerturbation_le_of_uniform_bounds
-TrajectoryCertifiedProposalGainSystem.exists_joint_certificate_of_error_floor
+delta_t <= floor  for every t.
 ```
 
-Lean file: `OUSVRBLO/PersistentErrorFloor.lean`.
-
-The persistent-error theorem deliberately does not claim
-
-$$
-G_t^2\to0
-\quad\text{or}\quad
-R_t\to0.
-$$
-
-Those pointwise limits require the stronger summability assumptions of the
-previous sections.
-
-## 7. Gradient-norm interpretation and iteration complexity
-
-In the analytic Hilbert-space closure,
-
-$$
-G_t^2=\|G_t\|^2.
-$$
-
-The generic fact
-
-$$
-\|G_t\|^2\to0
-\quad\Longrightarrow\quad
-\|G_t\|\to0
-$$
-
-is verified using continuity of the real square root.  Therefore summable
-perturbations imply the pointwise stationarity statement
-
-$$
-\boxed{\|G_t\|\to0.}
-$$
-
-Lean declarations:
+Then
 
 ```text
-tendsto_norm_zero_of_tendsto_norm_sq_zero
-AnalyticSafetySystem.gradient_norm_tendsto_zero_of_summable
-AnalyticGainSystem.gradient_norm_tendsto_zero_of_summable
+B_T <= Psi_0 - Pstar + T * floor.
 ```
 
-If a trajectory gradient certificate identifies `G_t` with the actual objective
-gradient and
+Lean proves the average neighborhood bound
 
-$$
-4\mathcal B_\infty
-\le
-\epsilon^2\eta T,
-$$
+```text
+average_(t<T) J_t
+  <= 4 * (Psi_0 - Pstar) / (eta * T)
+     + 4 * floor / eta.
+```
 
-then one iterate satisfies
+It also gives a same-iterate certificate:
 
-$$
-\boxed{
-\|\nabla P(z_t)\|\le\epsilon,
-\qquad
-R_t\le
-\frac{\epsilon^2}{\lambda^2C_R}.
-}
-$$
+```text
+exists t < T,
+  Gsq_t + lambda^2 * CR * R_t
+    <= 4 * (Psi_0 - Pstar) / (eta * T)
+       + 4 * floor / eta.
+```
 
-This is the checked `O(\epsilon^{-2})` gradient-norm stationarity dependence.
+With an objective-gradient certificate,
 
-The pointwise and finite-time statements still do not assert that the iterates
-`z_t` converge to a unique point.  They assert that the represented
-fixed-penalty stationarity measure and response residual vanish under summable
-perturbations, or enter an explicit neighborhood under persistent bounded
-perturbations.
+```text
+exists t < T,
+  ||gradient P(z_t)||^2 + lambda^2 * CR * R_t
+    <= 4 * (Psi_0 - Pstar) / (eta * T)
+       + 4 * floor / eta.
+```
+
+This is the appropriate result for persistent mini-batch noise, a nonvanishing
+proxy calibration radius, or fixed safeguard tolerances. Such errors produce a
+neighborhood, not an incorrect zero-error convergence claim.
+
+Principal Lean file:
+
+```text
+OUSVRBLO/PersistentErrorFloor.lean
+```
+
+## 7. Relationship among the regimes
+
+```text
+summable perturbations
+  => explicit O(1/T) same-iterate rate
+  => summability of Gsq, R, Gamma
+  => pointwise convergence to zero;
+
+Cesaro-vanishing perturbations
+  => average joint performance tends to zero
+  => average stationarity and residual tend to zero;
+
+persistent uniformly bounded perturbations
+  => finite stationarity/residual neighborhood.
+```
+
+These conclusions are logically distinct and are kept as separate theorem
+families in Lean.
+
+## 8. Claim boundary
+
+None of these consequences proves:
+
+```text
+convergence of the iterates to a unique point,
+global lower-level optimality,
+original BLO KKT convergence,
+projected or stochastic main-variable correctness.
+```
+
+They are finite-horizon, average, pointwise-measure, or neighborhood conclusions
+for the represented restricted/local fixed-penalty surrogate under the stated
+certificate and analytic interfaces.
