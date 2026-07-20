@@ -92,6 +92,10 @@ eta * lam^2 / 2 <= Cgain <= 3/4 * eta * lam^2.
   `seq_average_tendsto_zero_of_bounded_partial_sums`, the safety and gain-system
   partial-sum bounds, and the stationarity/residual/gain
   `average_tendsto_zero` theorems.
+- Summable-error closure:
+  `CertifiedSafetySystem.accumulatedRhs_le_summableRhs`,
+  `CertifiedGainStepSystem.accumulatedRhs_le_summableRhs`, and the five direct
+  `average_tendsto_zero_of_summable` corollaries.
 - Restricted value-response boundary:
   `RestrictedValueResponseInterface` and
   `RestrictedValueGradientInterface`.
@@ -118,7 +122,10 @@ Lean checks:
 - finite-horizon budgets imply averaged and best-iterate stationarity/residual
   bounds;
 - uniformly bounded accumulated right-hand sides imply bounded stationarity,
-  residual, and gain partial sums and hence average convergence to zero.
+  residual, and gain partial sums and hence average convergence to zero;
+- summability of the nonnegative perturbation sequences supplies the required
+  uniform accumulated-budget bound and therefore the corresponding asymptotic
+  conclusions directly.
 
 ## Remaining analytic boundary
 
