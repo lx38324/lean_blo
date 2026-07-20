@@ -32,12 +32,20 @@ theorem distance_sq_le_gradient_residual_of_strong_monotonicity
     rw [hstationary, sub_zero] at hcauchy hstrong
     exact hstrong.trans hcauchy
   by_cases hdist_zero : ‖xi - xistar‖ = 0
-  · simp [hdist_zero]
+  · rw [hdist_zero, zero_pow (by norm_num : (2 : ℕ) ≠ 0)]
+    exact mul_nonneg (by positivity) (sq_nonneg _)
   · have hdist_pos : 0 < ‖xi - xistar‖ :=
       lt_of_le_of_ne (norm_nonneg _) (Ne.symm hdist_zero)
     have hlinear : modulus * ‖xi - xistar‖ ≤ ‖lowerGrad xi‖ := by
-      apply (mul_le_mul_right hdist_pos).mp
-      simpa [pow_two, mul_assoc] using hmain
+      by_contra hnot
+      have hlt : ‖lowerGrad xi‖ < modulus * ‖xi - xistar‖ :=
+        lt_of_not_ge hnot
+      have hlt_scaled := mul_lt_mul_of_pos_right hlt hdist_pos
+      have hmain' :
+          (modulus * ‖xi - xistar‖) * ‖xi - xistar‖ ≤
+            ‖lowerGrad xi‖ * ‖xi - xistar‖ := by
+        simpa [pow_two, mul_assoc] using hmain
+      exact (not_lt_of_ge hmain') hlt_scaled
     have hleft_nonneg : 0 ≤ modulus * ‖xi - xistar‖ :=
       mul_nonneg (le_of_lt hmodulus) (norm_nonneg _)
     have hsquare :
@@ -103,7 +111,7 @@ theorem value_gradient_error_sq_le_lower_gradient_residual
       ‖upperGrad xi - upperGrad xistar‖ ≤ L * dist xi xistar := by
     simpa [dist_eq_norm] using hlipschitz
   have hbound := gradient_error_sq_le_of_lipschitz_and_error_bound
-    upperGrad xi xistar L (1 / modulus ^ 2) ‖lowerGrad xi‖ ^ 2 0
+    upperGrad xi xistar L (1 / modulus ^ 2) (‖lowerGrad xi‖ ^ 2) 0
       hL hlipschitz_dist herror_dist
   simpa [div_eq_mul_inv, mul_assoc] using hbound
 
