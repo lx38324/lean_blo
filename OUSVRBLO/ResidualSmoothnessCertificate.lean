@@ -7,6 +7,14 @@ namespace OUSVRBLO
 
 noncomputable section
 
+/-- A squared norm bound against a nonnegative scalar gives the norm bound. -/
+theorem norm_le_of_sq_le_sq_nonneg
+    {X : Type*} [NormedAddCommGroup X]
+    (x : X) (H : ℝ) (hH : 0 ≤ H)
+    (h : ‖x‖ ^ 2 ≤ H ^ 2) :
+    ‖x‖ ≤ H := by
+  nlinarith [norm_nonneg x]
+
 /--
 Local residual smoothness, a residual-gradient norm bound, and a displacement
 bound imply the raw residual-compatibility inequality used by the main theorem.
@@ -43,6 +51,48 @@ theorem raw_residual_drift_of_smoothness
           ≤ LR / 2 * (eta * stepNorm) ^ 2 := hquad_scaled
       _ = LR * eta ^ 2 / 2 * stepNorm ^ 2 := by ring
   linarith
+
+/--
+The same raw drift follows when residual-gradient control is supplied in the
+squared form used by the manuscript.
+-/
+theorem raw_residual_drift_of_smoothness_sq_grad
+    {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    (Rnext Q eta LR H stepNorm d : ℝ) (gradR dx : X)
+    (heta : 0 ≤ eta) (hLR : 0 ≤ LR)
+    (hH : 0 ≤ H) (hstepNorm : 0 ≤ stepNorm)
+    (hsmooth :
+      Rnext ≤ Q + ⟪gradR, dx⟫_ℝ + LR / 2 * ‖dx‖ ^ 2 + d)
+    (hgradSq : ‖gradR‖ ^ 2 ≤ H ^ 2)
+    (hstep : ‖dx‖ ≤ eta * stepNorm) :
+    Rnext ≤ Q + eta * H * stepNorm
+      + LR * eta ^ 2 / 2 * stepNorm ^ 2 + d := by
+  exact raw_residual_drift_of_smoothness
+    Rnext Q eta LR H stepNorm d gradR dx heta hLR hH hstepNorm
+    hsmooth (norm_le_of_sq_le_sq_nonneg gradR H hH hgradSq) hstep
+
+/--
+Manuscript-shaped specialization with
+`H^2 = C_R * Q + b` and
+`‖gradR‖^2 ≤ C_R * Q + b`.
+-/
+theorem raw_residual_drift_of_smoothness_interface
+    {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    (Rnext Q eta LR H stepNorm d CR b : ℝ) (gradR dx : X)
+    (heta : 0 ≤ eta) (hLR : 0 ≤ LR)
+    (hH : 0 ≤ H) (hstepNorm : 0 ≤ stepNorm)
+    (hHsq : H ^ 2 = CR * Q + b)
+    (hsmooth :
+      Rnext ≤ Q + ⟪gradR, dx⟫_ℝ + LR / 2 * ‖dx‖ ^ 2 + d)
+    (hgradSq : ‖gradR‖ ^ 2 ≤ CR * Q + b)
+    (hstep : ‖dx‖ ≤ eta * stepNorm) :
+    Rnext ≤ Q + eta * H * stepNorm
+      + LR * eta ^ 2 / 2 * stepNorm ^ 2 + d := by
+  apply raw_residual_drift_of_smoothness_sq_grad
+    Rnext Q eta LR H stepNorm d gradR dx
+    heta hLR hH hstepNorm hsmooth
+  · rwa [hHsq]
+  · exact hstep
 
 /--
 Specialization in which the displacement is exactly a nonnegative scalar times
