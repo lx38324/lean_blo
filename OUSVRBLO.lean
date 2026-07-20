@@ -22,4 +22,5 @@ import OUSVRBLO.RestrictedEnvelope
 import OUSVRBLO.ResponseErrorBound
 import OUSVRBLO.StrongMonotonicityCertificate
 import OUSVRBLO.ProximalResponseCertificate
+import OUSVRBLO.ContractionResidualCertificate
 import OUSVRBLO.QuadraticResponseExample
