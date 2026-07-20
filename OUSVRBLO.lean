@@ -12,6 +12,7 @@ import OUSVRBLO.ProxyCertificate
 import OUSVRBLO.CertifiedGainDescent
 import OUSVRBLO.FiniteTimeCorollaries
 import OUSVRBLO.Asymptotics
+import OUSVRBLO.SummableCorollaries
 import OUSVRBLO.AnalyticClosure
 import OUSVRBLO.AnalyticGainClosure
 import OUSVRBLO.AnalyticInterfaces
