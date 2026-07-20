@@ -86,7 +86,7 @@ theorem SelectedEndToEndCertifiedGainSystem.baseline_error_bound_envelope
     simpa [AcceptedResponseSelector.safeguardSystem] using
       S.selector.safeguardSystem.base_le_envelope t
   have hscaled := mul_le_mul_of_nonneg_left hbase (le_of_lt S.CR_pos)
-  exact (S.baseline_error_bound t).trans (add_le_add_right hscaled (S.b t))
+  nlinarith [S.baseline_error_bound t, hscaled]
 
 /-- The selected-response residual smoothness premise implies its envelope form. -/
 theorem SelectedEndToEndCertifiedGainSystem.residual_smooth_step_envelope
@@ -101,11 +101,7 @@ theorem SelectedEndToEndCertifiedGainSystem.residual_smooth_step_envelope
       S.selector.Ronline t ≤ S.selector.safeguardSystem.Q t := by
     simpa [AcceptedResponseSelector.safeguardSystem] using
       S.selector.safeguardSystem.online_le_envelope t
-  have h1 := add_le_add_right honline ⟪S.gradR t, S.dx t⟫_ℝ
-  have h2 := add_le_add_right h1
-    (S.driftParameters.LR / 2 * ‖S.dx t‖ ^ 2)
-  have h3 := add_le_add_right h2 (S.d t)
-  exact (S.residual_smooth_step_online t).trans h3
+  linarith [S.residual_smooth_step_online t, honline]
 
 /-- Close the explicit selector into the previous end-to-end certificate system. -/
 def SelectedEndToEndCertifiedGainSystem.toEndToEndCertifiedGainSystem
@@ -186,7 +182,9 @@ theorem SelectedEndToEndCertifiedGainSystem.cumulative_budget
         + S.toCertifiedGainStepSystem.Cb * SeqSum T S.b
         + S.toCertifiedGainStepSystem.Cd * SeqSum T S.d := by
   simpa [SelectedEndToEndCertifiedGainSystem.toCertifiedGainStepSystem,
-    SelectedEndToEndCertifiedGainSystem.toEndToEndCertifiedGainSystem, SeqSum]
+    SelectedEndToEndCertifiedGainSystem.toEndToEndCertifiedGainSystem,
+    AcceptedResponseSelector.safeguardSystem,
+    ResidualSafeguardSystem.eps, SeqSum]
     using S.toEndToEndCertifiedGainSystem.cumulative_budget T
 
 /-- Simplified finite-horizon theorem using the checked lower gain coefficient. -/
@@ -206,7 +204,9 @@ theorem SelectedEndToEndCertifiedGainSystem.cumulative_budget_simple
         + S.toCertifiedGainStepSystem.Cb * SeqSum T S.b
         + S.toCertifiedGainStepSystem.Cd * SeqSum T S.d := by
   simpa [SelectedEndToEndCertifiedGainSystem.toCertifiedGainStepSystem,
-    SelectedEndToEndCertifiedGainSystem.toEndToEndCertifiedGainSystem, SeqSum]
+    SelectedEndToEndCertifiedGainSystem.toEndToEndCertifiedGainSystem,
+    AcceptedResponseSelector.safeguardSystem,
+    ResidualSafeguardSystem.eps, SeqSum]
     using S.toEndToEndCertifiedGainSystem.cumulative_budget_simple T
 
 end
