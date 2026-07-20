@@ -81,9 +81,12 @@ theorem SelectedEndToEndCertifiedGainSystem.baseline_error_bound_envelope
     (S : SelectedEndToEndCertifiedGainSystem E X) (t : ℕ) :
     S.selector.eB t ≤
       S.CR * S.selector.safeguardSystem.Q t + S.b t := by
-  have hbase := S.selector.safeguardSystem.base_le_envelope t
+  have hbase :
+      S.selector.Rbase t ≤ S.selector.safeguardSystem.Q t := by
+    simpa [AcceptedResponseSelector.safeguardSystem] using
+      S.selector.safeguardSystem.base_le_envelope t
   have hscaled := mul_le_mul_of_nonneg_left hbase (le_of_lt S.CR_pos)
-  nlinarith [S.baseline_error_bound t, hscaled]
+  exact (S.baseline_error_bound t).trans (add_le_add_right hscaled (S.b t))
 
 /-- The selected-response residual smoothness premise implies its envelope form. -/
 theorem SelectedEndToEndCertifiedGainSystem.residual_smooth_step_envelope
@@ -94,8 +97,15 @@ theorem SelectedEndToEndCertifiedGainSystem.residual_smooth_step_envelope
     S.selector.R (t + 1) ≤
       S.selector.safeguardSystem.Q t + ⟪S.gradR t, S.dx t⟫_ℝ
         + S.driftParameters.LR / 2 * ‖S.dx t‖ ^ 2 + S.d t := by
-  have honline := S.selector.safeguardSystem.online_le_envelope t
-  linarith [S.residual_smooth_step_online t, honline]
+  have honline :
+      S.selector.Ronline t ≤ S.selector.safeguardSystem.Q t := by
+    simpa [AcceptedResponseSelector.safeguardSystem] using
+      S.selector.safeguardSystem.online_le_envelope t
+  have h1 := add_le_add_right honline ⟪S.gradR t, S.dx t⟫_ℝ
+  have h2 := add_le_add_right h1
+    (S.driftParameters.LR / 2 * ‖S.dx t‖ ^ 2)
+  have h3 := add_le_add_right h2 (S.d t)
+  exact (S.residual_smooth_step_online t).trans h3
 
 /-- Close the explicit selector into the previous end-to-end certificate system. -/
 def SelectedEndToEndCertifiedGainSystem.toEndToEndCertifiedGainSystem
@@ -157,6 +167,7 @@ theorem SelectedEndToEndCertifiedGainSystem.public_Gamma
     (S : SelectedEndToEndCertifiedGainSystem E X) :
     S.toCertifiedGainStepSystem.Gamma = S.selector.Gamma := by
   funext t
+  change S.selector.proxySequence.Gamma t = S.selector.Gamma t
   exact S.selector.proxy_Gamma t
 
 /-- Exact finite-horizon theorem from explicit proposal/fallback selection. -/
@@ -174,9 +185,9 @@ theorem SelectedEndToEndCertifiedGainSystem.cumulative_budget
             SeqSum T S.selector.safeguardSystem.eps
         + S.toCertifiedGainStepSystem.Cb * SeqSum T S.b
         + S.toCertifiedGainStepSystem.Cd * SeqSum T S.d := by
-  have h := S.toEndToEndCertifiedGainSystem.cumulative_budget T
-  rw [S.public_Gamma] at h
-  exact h
+  simpa [SelectedEndToEndCertifiedGainSystem.toCertifiedGainStepSystem,
+    SelectedEndToEndCertifiedGainSystem.toEndToEndCertifiedGainSystem, SeqSum]
+    using S.toEndToEndCertifiedGainSystem.cumulative_budget T
 
 /-- Simplified finite-horizon theorem using the checked lower gain coefficient. -/
 theorem SelectedEndToEndCertifiedGainSystem.cumulative_budget_simple
@@ -194,9 +205,9 @@ theorem SelectedEndToEndCertifiedGainSystem.cumulative_budget_simple
             SeqSum T S.selector.safeguardSystem.eps
         + S.toCertifiedGainStepSystem.Cb * SeqSum T S.b
         + S.toCertifiedGainStepSystem.Cd * SeqSum T S.d := by
-  have h := S.toEndToEndCertifiedGainSystem.cumulative_budget_simple T
-  rw [S.public_Gamma] at h
-  exact h
+  simpa [SelectedEndToEndCertifiedGainSystem.toCertifiedGainStepSystem,
+    SelectedEndToEndCertifiedGainSystem.toEndToEndCertifiedGainSystem, SeqSum]
+    using S.toEndToEndCertifiedGainSystem.cumulative_budget_simple T
 
 end
 
