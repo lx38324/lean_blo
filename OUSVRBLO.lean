@@ -30,6 +30,7 @@ import OUSVRBLO.GainAdjustedRates
 import OUSVRBLO.IterationComplexity
 import OUSVRBLO.PersistentErrorFloor
 import OUSVRBLO.StochasticExpectedGain
+import OUSVRBLO.StochasticGainAdjustedRates
 import OUSVRBLO.StochasticVarianceRate
 import OUSVRBLO.AnalyticClosure
 import OUSVRBLO.AnalyticGainClosure
