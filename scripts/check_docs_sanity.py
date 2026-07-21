@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reject control-character and visibly corrupted TeX in Markdown sources."""
+"""Reject corrupted Markdown and stale ICML theorem export references."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -15,6 +15,25 @@ PATTERNS: tuple[tuple[str, re.Pattern[bytes]], ...] = (
     ("possible stripped \\rho command", re.compile(rb"(?<!\\r)ho_t\^[PB]")),
 )
 VISIBLE_BAD = (b"C_bb_t", b"C_dd_t")
+
+EXPECTED_EXPORTS = (
+    "fallback_safe_finite_horizon",
+    "certified_gain_same_iterate",
+    "certified_gain_objective_gradient_same_iterate",
+    "positive_gain_strictly_tightens",
+    "proximal_response_error_certificate",
+    "proximal_baseline_sequence_certificate",
+    "stochastic_expected_finite_horizon",
+    "stochastic_expected_gain_adjusted_average",
+    "stochastic_variance_rate",
+)
+EXPORT_FILE = ROOT / "OUSVRBLO" / "ICMLTheoryPackage.lean"
+EXPORT_DOCS = (
+    ROOT / "README.md",
+    ROOT / "docs" / "ICML_METHOD_THEORY_PACKAGE.md",
+    ROOT / "docs" / "ICML_THEORY_DEPENDENCY_AUDIT.md",
+    ROOT / "docs" / "FORMALIZATION_SCOPE.md",
+)
 
 errors: list[str] = []
 for path in FILES:
@@ -46,10 +65,33 @@ for path in FILES:
             )
             start = offset + len(token)
 
+if not EXPORT_FILE.exists():
+    errors.append(f"missing theorem export file: {EXPORT_FILE.relative_to(ROOT)}")
+else:
+    export_text = EXPORT_FILE.read_text(encoding="utf-8")
+    for name in EXPECTED_EXPORTS:
+        if f"theorem {name}" not in export_text:
+            errors.append(
+                f"{EXPORT_FILE.relative_to(ROOT)}: missing theorem export {name}"
+            )
+
+for doc in EXPORT_DOCS:
+    if not doc.exists():
+        errors.append(f"missing theorem documentation: {doc.relative_to(ROOT)}")
+        continue
+    text = doc.read_text(encoding="utf-8")
+    for name in EXPECTED_EXPORTS:
+        token = f"ICMLTheoryPackage.{name}"
+        if token not in text:
+            errors.append(f"{doc.relative_to(ROOT)}: missing export reference {token}")
+
 if errors:
     print("documentation sanitation failed:", file=sys.stderr)
     for error in errors:
         print(f"  {error}", file=sys.stderr)
     raise SystemExit(1)
 
-print(f"documentation sanitation passed ({len(FILES)} Markdown files)")
+print(
+    "documentation sanitation passed "
+    f"({len(FILES)} Markdown files, {len(EXPECTED_EXPORTS)} theorem exports)"
+)
