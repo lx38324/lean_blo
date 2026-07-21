@@ -19,7 +19,8 @@ weakening the existing claim boundary.
 -/
 namespace ICMLTheoryPackage
 
-/-- Theorem 1: fallback-safe deterministic finite-horizon Lyapunov budget. -/
+/-- Theorem 1: fallback-safe deterministic finite-horizon Lyapunov budget for the
+trajectory descent vector. -/
 theorem fallback_safe_finite_horizon
     {E X : Type*}
     [NormedAddCommGroup E] [InnerProductSpace ℝ E]
@@ -35,6 +36,34 @@ theorem fallback_safe_finite_horizon
             SeqSum T (S.proposal.toAcceptedResponseSelector).safeguardSystem.eps
         + S.toCertifiedGainStepSystem.Cb * SeqSum T S.b
         + S.toCertifiedGainStepSystem.Cd * SeqSum T S.d := by
+  exact S.cumulative_budget T
+
+/-- Objective-gradient form of the fallback-safe finite-horizon theorem. This
+wrapper makes the stationarity semantics explicit rather than identifying an
+arbitrary descent vector with the objective gradient. -/
+theorem fallback_safe_objective_gradient_finite_horizon
+    {E X : Type*}
+    [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+    [NormedAddCommGroup X] [InnerProductSpace ℝ X]
+    (S : TrajectoryCertifiedProposalGainSystem E X)
+    (C : TrajectoryGradientCertificate S) (T : ℕ) :
+    (S.driftParameters.eta / 4) *
+          SeqSum T (fun t => ‖gradient S.objective (S.z t)‖ ^ 2)
+      + S.toCertifiedGainStepSystem.Cgain *
+          SeqSum T (S.proposal.toAcceptedResponseSelector).Gamma
+      + (S.driftParameters.eta * S.driftParameters.lam ^ 2 * S.CR / 4) *
+          SeqSum T S.proposal.R
+      ≤ S.toCertifiedGainStepSystem.Psi 0 - S.Pstar
+        + S.toCertifiedGainStepSystem.Ceps *
+            SeqSum T (S.proposal.toAcceptedResponseSelector).safeguardSystem.eps
+        + S.toCertifiedGainStepSystem.Cb * SeqSum T S.b
+        + S.toCertifiedGainStepSystem.Cd * SeqSum T S.d := by
+  have hgradient :
+      (fun t => ‖gradient S.objective (S.z t)‖ ^ 2) =
+        (fun t => ‖S.G t‖ ^ 2) := by
+    funext t
+    rw [C.gradient_eq t]
+  rw [hgradient]
   exact S.cumulative_budget T
 
 /-- Theorem 2: gain-adjusted average stationarity/residual performance. -/
