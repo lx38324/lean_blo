@@ -28,11 +28,14 @@ CORE_EXPORTS = (
     "stochastic_expected_gain_adjusted_average",
     "stochastic_variance_rate",
 )
+OBJECTIVE_GRADIENT_EXPORTS = (
+    "fallback_safe_objective_gradient_finite_horizon",
+)
 STOCHASTIC_GAIN_EXPORTS = (
     "stochastic_expected_same_iterate",
     "stochastic_positive_gain_strictly_tightens",
 )
-EXPECTED_EXPORTS = CORE_EXPORTS + STOCHASTIC_GAIN_EXPORTS
+EXPECTED_EXPORTS = CORE_EXPORTS + OBJECTIVE_GRADIENT_EXPORTS + STOCHASTIC_GAIN_EXPORTS
 
 EXPORT_FILE = ROOT / "OUSVRBLO" / "ICMLTheoryPackage.lean"
 CORE_EXPORT_DOCS = (
@@ -40,6 +43,9 @@ CORE_EXPORT_DOCS = (
     ROOT / "docs" / "ICML_METHOD_THEORY_PACKAGE.md",
     ROOT / "docs" / "ICML_THEORY_DEPENDENCY_AUDIT.md",
     ROOT / "docs" / "FORMALIZATION_SCOPE.md",
+)
+OBJECTIVE_GRADIENT_DOCS = (
+    ROOT / "docs" / "OBJECTIVE_GRADIENT_SEMANTICS.md",
 )
 STOCHASTIC_GAIN_DOCS = (
     ROOT / "docs" / "STOCHASTIC_GAIN_TIGHTENING.md",
@@ -99,6 +105,7 @@ def require_exports(docs: tuple[Path, ...], names: tuple[str, ...]) -> None:
 
 
 require_exports(CORE_EXPORT_DOCS, CORE_EXPORTS)
+require_exports(OBJECTIVE_GRADIENT_DOCS, OBJECTIVE_GRADIENT_EXPORTS)
 require_exports(STOCHASTIC_GAIN_DOCS, STOCHASTIC_GAIN_EXPORTS)
 
 if errors:
