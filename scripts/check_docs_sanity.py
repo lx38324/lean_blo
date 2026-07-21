@@ -16,7 +16,7 @@ PATTERNS: tuple[tuple[str, re.Pattern[bytes]], ...] = (
 )
 VISIBLE_BAD = (b"C_bb_t", b"C_dd_t")
 
-EXPECTED_EXPORTS = (
+CORE_EXPORTS = (
     "fallback_safe_finite_horizon",
     "certified_gain_average",
     "certified_gain_same_iterate",
@@ -26,16 +26,23 @@ EXPECTED_EXPORTS = (
     "proximal_baseline_sequence_certificate",
     "stochastic_expected_finite_horizon",
     "stochastic_expected_gain_adjusted_average",
-    "stochastic_expected_same_iterate",
-    "stochastic_positive_gain_strictly_tightens",
     "stochastic_variance_rate",
 )
+STOCHASTIC_GAIN_EXPORTS = (
+    "stochastic_expected_same_iterate",
+    "stochastic_positive_gain_strictly_tightens",
+)
+EXPECTED_EXPORTS = CORE_EXPORTS + STOCHASTIC_GAIN_EXPORTS
+
 EXPORT_FILE = ROOT / "OUSVRBLO" / "ICMLTheoryPackage.lean"
-EXPORT_DOCS = (
+CORE_EXPORT_DOCS = (
     ROOT / "README.md",
     ROOT / "docs" / "ICML_METHOD_THEORY_PACKAGE.md",
     ROOT / "docs" / "ICML_THEORY_DEPENDENCY_AUDIT.md",
     ROOT / "docs" / "FORMALIZATION_SCOPE.md",
+)
+STOCHASTIC_GAIN_DOCS = (
+    ROOT / "docs" / "STOCHASTIC_GAIN_TIGHTENING.md",
 )
 
 errors: list[str] = []
@@ -78,15 +85,21 @@ else:
                 f"{EXPORT_FILE.relative_to(ROOT)}: missing theorem export {name}"
             )
 
-for doc in EXPORT_DOCS:
-    if not doc.exists():
-        errors.append(f"missing theorem documentation: {doc.relative_to(ROOT)}")
-        continue
-    text = doc.read_text(encoding="utf-8")
-    for name in EXPECTED_EXPORTS:
-        token = f"ICMLTheoryPackage.{name}"
-        if token not in text:
-            errors.append(f"{doc.relative_to(ROOT)}: missing export reference {token}")
+
+def require_exports(docs: tuple[Path, ...], names: tuple[str, ...]) -> None:
+    for doc in docs:
+        if not doc.exists():
+            errors.append(f"missing theorem documentation: {doc.relative_to(ROOT)}")
+            continue
+        text = doc.read_text(encoding="utf-8")
+        for name in names:
+            token = f"ICMLTheoryPackage.{name}"
+            if token not in text:
+                errors.append(f"{doc.relative_to(ROOT)}: missing export reference {token}")
+
+
+require_exports(CORE_EXPORT_DOCS, CORE_EXPORTS)
+require_exports(STOCHASTIC_GAIN_DOCS, STOCHASTIC_GAIN_EXPORTS)
 
 if errors:
     print("documentation sanitation failed:", file=sys.stderr)
