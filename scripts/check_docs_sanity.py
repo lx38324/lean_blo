@@ -18,6 +18,7 @@ VISIBLE_BAD = (b"C_bb_t", b"C_dd_t")
 
 EXPECTED_EXPORTS = (
     "fallback_safe_finite_horizon",
+    "certified_gain_average",
     "certified_gain_same_iterate",
     "certified_gain_objective_gradient_same_iterate",
     "positive_gain_strictly_tightens",
