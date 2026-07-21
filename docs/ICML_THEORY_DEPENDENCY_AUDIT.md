@@ -1,8 +1,8 @@
 # ICML method-theory dependency audit
 
 This note audits the four paper-facing theoretical results intended for a
-method-and-experiments ICML submission.  It separates primitive assumptions,
-certificate-generated quantities, analytic consequences, and conclusions.  The
+method-and-experiments ICML submission. It separates primitive assumptions,
+certificate-generated quantities, analytic consequences, and conclusions. The
 purpose is to prevent a paper statement from silently treating a derived fact as
 an assumption or overstating what the Lean development verifies.
 
@@ -19,6 +19,7 @@ implemented in `OUSVRBLO/ICMLTheoryPackage.lean`.
 | Paper-facing result | Stable Lean declaration | Underlying checked theorem |
 |---|---|---|
 | Fallback-safe finite-horizon budget | `ICMLTheoryPackage.fallback_safe_finite_horizon` | `TrajectoryCertifiedProposalGainSystem.cumulative_budget` |
+| Gain-adjusted average certificate | `ICMLTheoryPackage.certified_gain_average` | `CertifiedGainStepSystem.joint_average_bound_with_gain` |
 | Gain-adjusted same-iterate certificate | `ICMLTheoryPackage.certified_gain_same_iterate` | `TrajectoryCertifiedProposalGainSystem.exists_joint_certificate_with_gain` |
 | Objective-gradient gain-adjusted certificate | `ICMLTheoryPackage.certified_gain_objective_gradient_same_iterate` | `TrajectoryCertifiedProposalGainSystem.exists_objective_gradient_joint_certificate_with_gain` |
 | Strict tightening under positive accumulated gain | `ICMLTheoryPackage.positive_gain_strictly_tightens` | `CertifiedGainStepSystem.gainAdjustedRhs_lt_accumulatedRhs_of_positive_gain` |
@@ -81,7 +82,7 @@ eps_coeff_bound
 b_coeff_bound
 ```
 
-as independent facts.  They are generated from the parameter package and the
+as independent facts. They are generated from the parameter package and the
 single small-step condition.
 
 ### Conclusion
@@ -134,7 +135,7 @@ $$
 and a same-horizon existence result.
 
 The dependency is exactly the deterministic budget plus nonnegativity of the
-selected gain.  No additional analytic assumption is introduced.
+selected gain. No additional analytic assumption is introduced.
 
 Lean also verifies
 
@@ -154,7 +155,7 @@ $$
 \mathcal B_T^{\rm gain}<\mathcal B_T.
 $$
 
-This is a strict tightening of the upper bound for the selected trajectory.  It
+This is a strict tightening of the upper bound for the selected trajectory. It
 is not a comparison between two counterfactual trajectories and must not be
 presented as online-versus-baseline trajectory dominance.
 
@@ -218,7 +219,7 @@ $$
 C_E=\frac{L^2}{(\rho-\kappa)^2}.
 $$
 
-This theorem closes the response-error interface only.  It does not by itself
+This theorem closes the response-error interface only. It does not by itself
 prove objective smoothness, base contraction, residual drift, or stochastic
 sampling properties for a concrete neural model.
 
@@ -326,7 +327,7 @@ when the bracketed coefficient is bounded.
 ### Boundary of the stochastic formalization
 
 Lean checks expectation-level scalar algebra and a centered moment sufficient
-condition.  It does not formalize:
+condition. It does not formalize:
 
 1. a concrete probability space and filtration for an LLM training loop;
 2. measurability of a neural network sampler;
