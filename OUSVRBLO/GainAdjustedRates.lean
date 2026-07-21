@@ -14,6 +14,16 @@ def CertifiedGainStepSystem.gainAdjustedRhs
     (S : CertifiedGainStepSystem) (T : ℕ) : ℝ :=
   S.accumulatedRhs T - S.Cgain * SeqSum T S.Gamma
 
+/-- The exact certified-gain coefficient is strictly positive. -/
+theorem CertifiedGainStepSystem.gain_coefficient_pos
+    (S : CertifiedGainStepSystem) :
+    0 < S.Cgain := by
+  have hlamSq : 0 < S.lam ^ 2 :=
+    sq_pos_of_ne_zero (ne_of_gt S.lam_pos)
+  have hbase : 0 < S.eta * S.lam ^ 2 / 2 :=
+    div_pos (mul_pos S.eta_pos hlamSq) (by norm_num)
+  exact lt_of_lt_of_le hbase S.Cgain_lower
+
 /-- The scaled joint stationarity/residual sum is bounded by the Lyapunov budget
 minus the exact accumulated certified gain. -/
 theorem CertifiedGainStepSystem.joint_scaled_sum_le_gainAdjustedRhs
@@ -54,8 +64,30 @@ theorem CertifiedGainStepSystem.gainAdjustedRhs_nonneg
     mul_nonneg hcoef hsum
   exact hleft.trans (S.joint_scaled_sum_le_gainAdjustedRhs T)
 
-/-- Gain-adjusted average performance bound.  Relative to the safety-only
-bound, the certified improvement tightens the numerator by
+/-- Retaining certified gain never weakens the safety-only numerator. -/
+theorem CertifiedGainStepSystem.gainAdjustedRhs_le_accumulatedRhs
+    (S : CertifiedGainStepSystem) (T : ℕ) :
+    S.gainAdjustedRhs T ≤ S.accumulatedRhs T := by
+  have hsum : 0 ≤ SeqSum T S.Gamma := by
+    simpa [SeqSum] using Finset.sum_nonneg (fun t _ => S.Gamma_nonneg t)
+  have hgain : 0 ≤ S.Cgain * SeqSum T S.Gamma :=
+    mul_nonneg S.gain_coefficient_pos.le hsum
+  dsimp [CertifiedGainStepSystem.gainAdjustedRhs]
+  linarith
+
+/-- The gain-adjusted numerator is strictly smaller exactly when a positive
+amount of certified gain has accumulated on the horizon. -/
+theorem CertifiedGainStepSystem.gainAdjustedRhs_lt_accumulatedRhs_of_positive_gain
+    (S : CertifiedGainStepSystem) (T : ℕ)
+    (hgainSum : 0 < SeqSum T S.Gamma) :
+    S.gainAdjustedRhs T < S.accumulatedRhs T := by
+  have hgain : 0 < S.Cgain * SeqSum T S.Gamma :=
+    mul_pos S.gain_coefficient_pos hgainSum
+  dsimp [CertifiedGainStepSystem.gainAdjustedRhs]
+  linarith
+
+/-- Gain-adjusted average performance bound. Relative to the safety-only
+bound, positive accumulated certified gain tightens the numerator by
 `Cgain * sum Gamma`. -/
 theorem CertifiedGainStepSystem.joint_average_bound_with_gain
     (S : CertifiedGainStepSystem) {T : ℕ} (hT : 0 < T) :
