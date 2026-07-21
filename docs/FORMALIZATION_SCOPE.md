@@ -408,6 +408,7 @@ Proposal/base and sequence-level asymmetric forms are included.
 
 ```text
 ICMLTheoryPackage.fallback_safe_finite_horizon
+ICMLTheoryPackage.certified_gain_average
 ICMLTheoryPackage.certified_gain_same_iterate
 ICMLTheoryPackage.certified_gain_objective_gradient_same_iterate
 ICMLTheoryPackage.positive_gain_strictly_tightens
@@ -418,8 +419,8 @@ ICMLTheoryPackage.stochastic_expected_gain_adjusted_average
 ICMLTheoryPackage.stochastic_variance_rate
 ```
 
-These are thin aliases of the fully checked theorem stack and introduce no new
-assumptions.
+These are thin wrappers around the fully checked theorem stack and introduce no
+new assumptions.
 
 ## 10. Remaining analytic boundary
 
