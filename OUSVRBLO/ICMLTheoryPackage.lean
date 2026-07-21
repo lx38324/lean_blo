@@ -1,5 +1,6 @@
 import OUSVRBLO.GainAdjustedRates
 import OUSVRBLO.ProximalLocalInstantiation
+import OUSVRBLO.StochasticGainAdjustedRates
 import OUSVRBLO.StochasticVarianceRate
 
 open BigOperators
@@ -118,6 +119,23 @@ theorem stochastic_expected_gain_adjusted_average
     (1 / (T : ℝ)) * SeqSum T S.jointMeasure ≤
       4 * S.gainAdjustedRhs T / (S.eta * (T : ℝ)) := by
   exact S.joint_average_bound_with_gain hT
+
+/-- Some expected iterate on the horizon satisfies the gain-adjusted joint
+stationarity/residual certificate. -/
+theorem stochastic_expected_same_iterate
+    (S : StochasticExpectedGainSystem) {T : ℕ} (hT : 0 < T) :
+    ∃ t < T,
+      S.jointMeasure t ≤
+        4 * S.gainAdjustedRhs T / (S.eta * (T : ℝ)) := by
+  exact S.exists_joint_certificate_with_gain hT
+
+/-- Positive accumulated expected certified gain strictly tightens the expected
+selected-trajectory numerator. -/
+theorem stochastic_positive_gain_strictly_tightens
+    (S : StochasticExpectedGainSystem) (T : ℕ)
+    (hgainSum : 0 < SeqSum T S.EGamma) :
+    S.gainAdjustedRhs T < S.accumulatedRhs T := by
+  exact S.gainAdjustedRhs_lt_accumulatedRhs_of_positive_gain T hgainSum
 
 /-- Manuscript-specialized stochastic rate with explicit
 `O(1 / (eta*T) + eta*sigma^2)` dependence. -/
