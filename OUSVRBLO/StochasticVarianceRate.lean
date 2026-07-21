@@ -93,6 +93,16 @@ theorem StochasticExpectedGainSystem.joint_average_bound_of_variance_only_manusc
             + 2 * S.lam ^ 2 * S.CR * LR * S.eta / S.theta) * sigmaBar := by
   have hbase := S.joint_average_bound_of_variance_only hT sigmaBar
     heps hb hd hsigma
+  have hgeneric := S.four_Csigma_div_eta
+  have hmanuscript := S.four_Csigma_div_eta_manuscript LR hAeta
+  have hcoeff :
+      2 * S.LP * S.eta
+          + 4 * S.lam ^ 2 * S.CR * S.Aeta / S.theta =
+        S.eta *
+          (2 * S.LP
+            + sqrtTwo * S.lam * S.CR / S.theta
+            + 2 * S.lam ^ 2 * S.CR * LR * S.eta / S.theta) :=
+    hgeneric.symm.trans hmanuscript
   calc
     (1 / (T : ℝ)) * SeqSum T S.jointMeasure
         ≤ 4 * (S.EPsi 0 - S.Pstar) / (S.eta * (T : ℝ))
@@ -103,9 +113,7 @@ theorem StochasticExpectedGainSystem.joint_average_bound_of_variance_only_manusc
           (2 * S.LP
             + sqrtTwo * S.lam * S.CR / S.theta
             + 2 * S.lam ^ 2 * S.CR * LR * S.eta / S.theta) * sigmaBar := by
-      have hcoeff := S.four_Csigma_div_eta_manuscript LR hAeta
-      have hgeneric := S.four_Csigma_div_eta
-      linarith
+      rw [hcoeff]
 
 end
 
