@@ -36,8 +36,15 @@ theorem fallback_safe_finite_horizon
         + S.toCertifiedGainStepSystem.Cd * SeqSum T S.d := by
   exact S.cumulative_budget T
 
-/-- Theorem 2: certified accumulated gain tightens the selected trajectory's
-same-horizon stationarity/residual certificate. -/
+/-- Theorem 2: gain-adjusted average stationarity/residual performance. -/
+theorem certified_gain_average
+    (S : CertifiedGainStepSystem) {T : ℕ} (hT : 0 < T) :
+    (1 / (T : ℝ)) * SeqSum T S.jointMeasure ≤
+      4 * S.gainAdjustedRhs T / (S.eta * (T : ℝ)) := by
+  exact S.joint_average_bound_with_gain hT
+
+/-- Certified accumulated gain tightens the selected trajectory's same-horizon
+stationarity/residual certificate. -/
 theorem certified_gain_same_iterate
     {E X : Type*}
     [NormedAddCommGroup E] [InnerProductSpace ℝ E]
