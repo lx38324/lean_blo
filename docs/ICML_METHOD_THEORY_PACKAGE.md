@@ -117,6 +117,7 @@ algorithm.
 Stable Lean declarations:
 
 ```text
+OUSVRBLO.ICMLTheoryPackage.certified_gain_average
 OUSVRBLO.ICMLTheoryPackage.certified_gain_same_iterate
 OUSVRBLO.ICMLTheoryPackage.certified_gain_objective_gradient_same_iterate
 OUSVRBLO.ICMLTheoryPackage.positive_gain_strictly_tightens
