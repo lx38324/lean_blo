@@ -26,6 +26,8 @@ EXPECTED_EXPORTS = (
     "proximal_baseline_sequence_certificate",
     "stochastic_expected_finite_horizon",
     "stochastic_expected_gain_adjusted_average",
+    "stochastic_expected_same_iterate",
+    "stochastic_positive_gain_strictly_tightens",
     "stochastic_variance_rate",
 )
 EXPORT_FILE = ROOT / "OUSVRBLO" / "ICMLTheoryPackage.lean"
