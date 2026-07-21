@@ -196,8 +196,8 @@ theorem StochasticExpectedGainSystem.one_step_lyapunov
     mul_le_mul_of_nonneg_right heps (S.Eeps_nonneg t)
   have hb_scaled :=
     mul_le_mul_of_nonneg_right hb (S.Eb_nonneg t)
-  ring_nf at hcombined hcontr_scaled htwo_scaled hdrop_scaled
-    heps_scaled hb_scaled ⊢
+  simp only [Nat.add_comm t 1] at hcombined ⊢
+  ring_nf at hcombined hcontr_scaled htwo_scaled hdrop_scaled heps_scaled hb_scaled ⊢
   linarith [hcombined, hcontr_scaled, htwo_scaled, hdrop_scaled,
     heps_scaled, hb_scaled]
 
@@ -287,7 +287,7 @@ theorem StochasticExpectedGainSystem.joint_average_bound_with_gain
     _ = 4 * S.gainAdjustedRhs T / (S.eta * (T : ℝ)) := by ring
 
 /-- Some stochastic expected iterate on the horizon satisfies the same
- gain-adjusted joint bound. -/
+gain-adjusted joint bound. -/
 theorem StochasticExpectedGainSystem.exists_joint_certificate_with_gain
     (S : StochasticExpectedGainSystem) {T : ℕ} (hT : 0 < T) :
     ∃ t < T,
