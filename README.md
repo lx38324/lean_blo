@@ -70,6 +70,7 @@ when positive certified gain accumulates.
 Stable declarations:
 
 ```text
+ICMLTheoryPackage.certified_gain_average
 ICMLTheoryPackage.certified_gain_same_iterate
 ICMLTheoryPackage.certified_gain_objective_gradient_same_iterate
 ICMLTheoryPackage.positive_gain_strictly_tightens
