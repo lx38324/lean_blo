@@ -12,7 +12,7 @@ noncomputable section
 Scalar moment interface for a centered stochastic update perturbation.
 
 The quantities can be read as conditional expectations given the current
-history.  If the noise cross moment is zero and its second moment is bounded by
+history. If the noise cross moment is zero and its second moment is bounded by
 `sigmaSq`, the full stochastic step second moment is bounded by the noiseless
 step second moment plus `sigmaSq`.
 -/
@@ -38,15 +38,15 @@ theorem CenteredNoiseMoment.fullStepSq_le
 /--
 Expectation-level certified-gain Lyapunov system.
 
-`EP`, `ER`, `EQ`, `EGsq`, and `EGamma` represent expectations (or conditional
-expectations already averaged over the stochastic history).  The one-step
+`EP`, `ER`, `EQ`, `EGsq`, and `EGamma` represent expectations, or conditional
+expectations already averaged over the stochastic history. The one-step
 interfaces are the standard consequences of a centered stochastic perturbation
 `W_t` with second moment bounded by `sigmaSq t`:
 
 * objective descent gains `LP * eta^2 / 2 * sigmaSq t`;
 * residual drift gains `Aeta * sigmaSq t`.
 
-The theorem below machine-checks all subsequent coefficient accounting,
+The theorem below machine-checks the subsequent coefficient accounting,
 telescoping, gain retention, and expected stationarity/residual rates.
 -/
 structure StochasticExpectedGainSystem extends SafetyParameters where
@@ -172,28 +172,22 @@ theorem StochasticExpectedGainSystem.one_step_lyapunov
           + (S.LP * S.eta ^ 2 / 2
             + S.alpha * S.Aeta) * S.sigmaSq t := by
     nlinarith [hdes, hdrift_scaled]
-  let noiseTerm : ℝ :=
-    (S.LP * S.eta ^ 2 / 2 + S.alpha * S.Aeta) * S.sigmaSq t
-  have hcombined_no_noise :
-      S.EP (t + 1) + S.alpha * S.ER (t + 1) - noiseTerm ≤
-        S.EP t
-          - (S.eta / 2 - 2 * S.alpha * S.Aeta) * S.EGsq t
-          + (S.eta * S.lam ^ 2 * S.CR / 2
-            + S.alpha * (1 + S.CR * S.beta)) * S.EQ t
-          + (S.eta * S.lam ^ 2 / 2
-            + S.alpha * S.beta) * S.Eb t
-          + S.alpha * S.Ed t
-          - (S.eta * S.lam ^ 2 / 2
-            + 2 * S.alpha * S.Aeta * S.lam ^ 2) * S.EGamma t := by
-    dsimp [noiseTerm]
-    linarith [hcombined]
   have hcontr_scaled :=
     mul_le_mul_of_nonneg_left hcontr
       S.toSafetyParameters.envelope_coeff_nonneg
   have htwo := S.toSafetyParameters.two_alpha_Aeta_le
   have hdrop := S.toSafetyParameters.residual_drop_coeff
-  have heps := S.toSafetyParameters.eps_coeff_bound
-  have hb := S.toSafetyParameters.b_coeff_bound
+  have heps :
+      S.eta * S.lam ^ 2 * S.CR / 2
+        + S.alpha * (1 + S.CR * S.beta)
+        ≤ S.eta * S.lam ^ 2 * S.CR * (3 / 4 + 1 / S.theta) := by
+    simpa [SafetyParameters.Ceps] using
+      S.toSafetyParameters.eps_coeff_bound
+  have hb :
+      S.eta * S.lam ^ 2 / 2 + S.alpha * S.beta
+        ≤ 3 / 4 * S.eta * S.lam ^ 2 := by
+    simpa [SafetyParameters.Cb] using
+      S.toSafetyParameters.b_coeff_bound
   have htwo_scaled :=
     mul_le_mul_of_nonneg_right htwo (S.EGsq_nonneg t)
   have hdrop_scaled :=
@@ -202,48 +196,39 @@ theorem StochasticExpectedGainSystem.one_step_lyapunov
     mul_le_mul_of_nonneg_right heps (S.Eeps_nonneg t)
   have hb_scaled :=
     mul_le_mul_of_nonneg_right hb (S.Eb_nonneg t)
-  have hdet :
-      S.EP (t + 1) + S.alpha * S.ER (t + 1) - noiseTerm ≤
-        S.EP t + S.alpha * S.ER t
-          - S.eta / 4 * S.EGsq t
-          - S.eta * S.lam ^ 2 * S.CR / 4 * S.ER t
-          - (S.eta * S.lam ^ 2 / 2
-            + 2 * S.alpha * S.Aeta * S.lam ^ 2) * S.EGamma t
-          + S.eta * S.lam ^ 2 * S.CR * (3 / 4 + 1 / S.theta) *
-              S.Eeps t
-          + 3 / 4 * S.eta * S.lam ^ 2 * S.Eb t
-          + S.alpha * S.Ed t := by
-    ring_nf at hcombined_no_noise hcontr_scaled htwo_scaled hdrop_scaled
-      heps_scaled hb_scaled ⊢
-    linarith [hcombined_no_noise, hcontr_scaled, htwo_scaled,
-      hdrop_scaled, heps_scaled, hb_scaled]
-  dsimp [noiseTerm] at hdet
-  linarith [hdet]
+  ring_nf at hcombined hcontr_scaled htwo_scaled hdrop_scaled
+    heps_scaled hb_scaled ⊢
+  linarith [hcombined, hcontr_scaled, htwo_scaled, hdrop_scaled,
+    heps_scaled, hb_scaled]
 
 /-- Exact finite-horizon expected budget. -/
+theorem StochasticExpectedGainSystem.cumulative_budget_to_time
+    (S : StochasticExpectedGainSystem) (T : ℕ) :
+    (S.eta / 4) * SeqSum T S.EGsq
+      + S.Cgain * SeqSum T S.EGamma
+      + (S.eta * S.lam ^ 2 * S.CR / 4) * SeqSum T S.ER
+      ≤ S.EPsi 0 - S.EPsi T
+        + S.Ceps * SeqSum T S.Eeps
+        + S.Cb * SeqSum T S.Eb
+        + S.Cd * SeqSum T S.Ed
+        + S.Csigma * SeqSum T S.sigmaSq := by
+  induction T with
+  | zero => simp [SeqSum]
+  | succ T ih =>
+      simp [SeqSum] at ih
+      simp [SeqSum, Finset.sum_range_succ]
+      have hstep := S.one_step_lyapunov T
+      ring_nf at ih hstep ⊢
+      nlinarith [ih, hstep]
+
+/-- Exact finite-horizon expected budget with the terminal Lyapunov lower bound. -/
 theorem StochasticExpectedGainSystem.cumulative_budget
     (S : StochasticExpectedGainSystem) (T : ℕ) :
     (S.eta / 4) * SeqSum T S.EGsq
       + S.Cgain * SeqSum T S.EGamma
       + (S.eta * S.lam ^ 2 * S.CR / 4) * SeqSum T S.ER
       ≤ S.accumulatedRhs T := by
-  have htime :
-      (S.eta / 4) * SeqSum T S.EGsq
-        + S.Cgain * SeqSum T S.EGamma
-        + (S.eta * S.lam ^ 2 * S.CR / 4) * SeqSum T S.ER
-        ≤ S.EPsi 0 - S.EPsi T
-          + S.Ceps * SeqSum T S.Eeps
-          + S.Cb * SeqSum T S.Eb
-          + S.Cd * SeqSum T S.Ed
-          + S.Csigma * SeqSum T S.sigmaSq := by
-    induction T with
-    | zero => simp [SeqSum]
-    | succ T ih =>
-        simp [SeqSum] at ih
-        simp [SeqSum, Finset.sum_range_succ]
-        have hstep := S.one_step_lyapunov T
-        ring_nf at ih hstep ⊢
-        nlinarith [ih, hstep]
+  have htime := S.cumulative_budget_to_time T
   have hlower := S.EPsi_lower T
   dsimp [StochasticExpectedGainSystem.accumulatedRhs]
   nlinarith [htime, hlower]
@@ -265,8 +250,24 @@ theorem StochasticExpectedGainSystem.joint_scaled_sum_le_gainAdjustedRhs
   dsimp [StochasticExpectedGainSystem.gainAdjustedRhs]
   linarith
 
+/-- The gain-adjusted stochastic numerator is nonnegative. -/
+theorem StochasticExpectedGainSystem.gainAdjustedRhs_nonneg
+    (S : StochasticExpectedGainSystem) (T : ℕ) :
+    0 ≤ S.gainAdjustedRhs T := by
+  have hsum : 0 ≤ SeqSum T S.jointMeasure := by
+    simpa [SeqSum] using Finset.sum_nonneg (fun t _ => by
+      exact add_nonneg (S.EGsq_nonneg t)
+        (mul_nonneg
+          (mul_nonneg (sq_nonneg S.lam) (le_of_lt S.CR_pos))
+          (S.ER_nonneg t)))
+  have hcoef : 0 ≤ S.eta / 4 :=
+    div_nonneg (le_of_lt S.eta_pos) (by norm_num)
+  have hleft : 0 ≤ (S.eta / 4) * SeqSum T S.jointMeasure :=
+    mul_nonneg hcoef hsum
+  exact hleft.trans (S.joint_scaled_sum_le_gainAdjustedRhs T)
+
 /-- Expected average stationarity/residual rate retaining the accumulated
-certified gain and the stochastic variance budget. -/
+certified gain and stochastic variance budget. -/
 theorem StochasticExpectedGainSystem.joint_average_bound_with_gain
     (S : StochasticExpectedGainSystem) {T : ℕ} (hT : 0 < T) :
     (1 / (T : ℝ)) * SeqSum T S.jointMeasure ≤
@@ -285,6 +286,16 @@ theorem StochasticExpectedGainSystem.joint_average_bound_with_gain
     _ ≤ (4 / (S.eta * (T : ℝ))) * S.gainAdjustedRhs T := hscaled
     _ = 4 * S.gainAdjustedRhs T / (S.eta * (T : ℝ)) := by ring
 
+/-- Some stochastic expected iterate on the horizon satisfies the same
+ gain-adjusted joint bound. -/
+theorem StochasticExpectedGainSystem.exists_joint_certificate_with_gain
+    (S : StochasticExpectedGainSystem) {T : ℕ} (hT : 0 < T) :
+    ∃ t < T,
+      S.jointMeasure t ≤
+        4 * S.gainAdjustedRhs T / (S.eta * (T : ℝ)) := by
+  exact exists_le_of_seq_average_le hT S.jointMeasure _
+    (S.joint_average_bound_with_gain hT)
+
 /-- Safety-form expected rate obtained by dropping the nonnegative gain term. -/
 theorem StochasticExpectedGainSystem.joint_average_bound
     (S : StochasticExpectedGainSystem) {T : ℕ} (hT : 0 < T) :
@@ -294,7 +305,8 @@ theorem StochasticExpectedGainSystem.joint_average_bound
     div_nonneg
       (mul_nonneg (le_of_lt S.eta_pos) (sq_nonneg S.lam))
       (by norm_num)
-  have hcoef : 0 ≤ S.Cgain := hcoefBase.trans S.toSafetyParameters.Cgain_lower
+  have hcoef : 0 ≤ S.Cgain :=
+    hcoefBase.trans S.toSafetyParameters.Cgain_lower
   have hsum : 0 ≤ SeqSum T S.EGamma := by
     simpa [SeqSum] using Finset.sum_nonneg (fun t _ => S.EGamma_nonneg t)
   have hgain : 0 ≤ S.Cgain * SeqSum T S.EGamma :=
@@ -387,7 +399,7 @@ theorem StochasticExpectedGainSystem.joint_average_bound_of_uniform_errors
     _ = 4 * (S.EPsi 0 - S.Pstar) / (S.eta * (T : ℝ))
           + 4 * (S.Ceps * epsBar + S.Cb * bBar + S.Cd * dBar
             + S.Csigma * sigmaBar) / S.eta := by
-            field_simp [ne_of_gt S.eta_pos, ne_of_gt hTreal] <;> ring
+            field_simp [ne_of_gt S.eta_pos, ne_of_gt hTreal]
 
 end
 
