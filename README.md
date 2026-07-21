@@ -42,11 +42,16 @@ Cgain = eta * lambda^2 / 2 + 2 * alpha * Aeta * lambda^2,
 eta * lambda^2 / 2 <= Cgain <= 3/4 * eta * lambda^2.
 ```
 
-Stable declaration:
+Stable declarations:
 
 ```text
 ICMLTheoryPackage.fallback_safe_finite_horizon
+ICMLTheoryPackage.fallback_safe_objective_gradient_finite_horizon
 ```
+
+The first theorem is stated for the trajectory descent vector `G_t`; the second
+requires a `TrajectoryGradientCertificate` and explicitly rewrites it as the
+objective gradient.
 
 ### 2. Gain-adjusted selected-trajectory rate
 
@@ -156,6 +161,8 @@ Stable declarations:
 ```text
 ICMLTheoryPackage.stochastic_expected_finite_horizon
 ICMLTheoryPackage.stochastic_expected_gain_adjusted_average
+ICMLTheoryPackage.stochastic_expected_same_iterate
+ICMLTheoryPackage.stochastic_positive_gain_strictly_tightens
 ICMLTheoryPackage.stochastic_variance_rate
 ```
 
@@ -276,10 +283,15 @@ intentionally refreshing and committing the dependency graph.
 - `docs/ICML_METHOD_THEORY_PACKAGE.md`: compact paper-facing theorem package.
 - `docs/ICML_THEORY_DEPENDENCY_AUDIT.md`: assumption ownership and exact theorem
   dependency map.
-- `docs/OUSVR_BLO_CERTIFIED_THEORY.md`: full mathematical derivation.
+- `docs/OUSVR_BLO_CERTIFIED_THEORY.md`: full deterministic mathematical derivation.
+- `docs/LEGACY_THEORY_MIGRATION.md`: migration from the deprecated
+  `Rhat/Delta/zeta` notation to `Q/Gamma`.
+- `docs/OBJECTIVE_GRADIENT_SEMANTICS.md`: distinction between the descent-vector
+  budget and the actual objective-gradient theorem.
+- `docs/STOCHASTIC_EXPECTED_RATE.md`: stochastic rate derivation.
+- `docs/STOCHASTIC_GAIN_TIGHTENING.md`: expected gain-adjusted tightening.
 - `docs/FORMALIZATION_SCOPE.md`: exact checked and unchecked boundaries.
 - `docs/PROXY_GRADIENT_CALIBRATION.md`: vector proxy sufficient condition.
-- `docs/STOCHASTIC_EXPECTED_RATE.md`: stochastic rate derivation.
 
 ## Main Lean entry points
 
@@ -288,6 +300,7 @@ ICMLTheoryPackage.lean
 GainAdjustedRates.lean
 ProximalLocalInstantiation.lean
 StochasticExpectedGain.lean
+StochasticGainAdjustedRates.lean
 StochasticVarianceRate.lean
 TrajectoryCertifiedProposalGain.lean
 ValueGradientFixedPenaltyCoupling.lean
