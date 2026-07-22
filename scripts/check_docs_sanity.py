@@ -50,6 +50,20 @@ OBJECTIVE_GRADIENT_DOCS = (
 STOCHASTIC_GAIN_DOCS = (
     ROOT / "docs" / "STOCHASTIC_GAIN_TIGHTENING.md",
 )
+TRAINING_GUIDE = ROOT / "docs" / "TRAINING_IMPLEMENTATION_GUIDE.md"
+THEORY_REVIEW_GUIDE = ROOT / "docs" / "THEORY_REVIEW_GUIDE.md"
+TRAINING_GUIDE_EXPORTS = (
+    "fallback_safe_finite_horizon",
+    "fallback_safe_objective_gradient_finite_horizon",
+    "certified_gain_average",
+    "certified_gain_same_iterate",
+    "positive_gain_strictly_tightens",
+    "proximal_response_error_certificate",
+    "proximal_baseline_sequence_certificate",
+    "stochastic_expected_finite_horizon",
+    "stochastic_expected_gain_adjusted_average",
+    "stochastic_variance_rate",
+)
 
 errors: list[str] = []
 for path in FILES:
@@ -107,6 +121,8 @@ def require_exports(docs: tuple[Path, ...], names: tuple[str, ...]) -> None:
 require_exports(CORE_EXPORT_DOCS, CORE_EXPORTS)
 require_exports(OBJECTIVE_GRADIENT_DOCS, OBJECTIVE_GRADIENT_EXPORTS)
 require_exports(STOCHASTIC_GAIN_DOCS, STOCHASTIC_GAIN_EXPORTS)
+require_exports((TRAINING_GUIDE,), TRAINING_GUIDE_EXPORTS)
+require_exports((THEORY_REVIEW_GUIDE,), EXPECTED_EXPORTS)
 
 if errors:
     print("documentation sanitation failed:", file=sys.stderr)
@@ -116,5 +132,6 @@ if errors:
 
 print(
     "documentation sanitation passed "
-    f"({len(FILES)} Markdown files, {len(EXPECTED_EXPORTS)} theorem exports)"
+    f"({len(FILES)} Markdown files, {len(EXPECTED_EXPORTS)} theorem exports, "
+    "2 role guides)"
 )
