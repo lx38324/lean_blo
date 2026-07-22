@@ -1,12 +1,12 @@
 # OUSVR-BLO 理论审查指南
 
-本文面向负责数学审稿、形式化审计、内部理论验收或 rebuttal 支持的角色。目标是提供一条可重复的检查路径：先确认 claim 边界，再审查 primitive assumptions，随后检查 selector、系数、telescoping、proximal instantiation 与 stochastic extension，最后核对论文表述是否超过 Lean 实际覆盖范围。
+本文面向数学审稿、形式化审计、内部理论验收和 rebuttal 支持角色。审查目标是确认四件事：主 claim 没有超过 restricted/local fixed-penalty 范围；primitive assumptions 与 derived facts 没有混淆；论文公式与 Lean theorem 一一对应；实现描述没有违反固定目标、非投影更新和 expectation-level stochastic 边界。
 
-## 1. 建议先给出的审查结论
+## 1. 建议的总评
 
 当前理论适合作为方法型 ICML 投稿的 supporting theory。核心结论是：
 
-> 对 restricted/local fixed-penalty value-function surrogate，任意 learned response proposal 经过显式 residual 与 calibrated proxy certificate 后，可以安全接入更新；accepted uncertainty-adjusted gain 作为真实非负有利项进入 selected trajectory 的 Lyapunov budget。
+> 对 restricted/local fixed-penalty value-function surrogate，任意 learned response proposal 经过显式 residual 与 calibrated proxy certificate 后可以安全接入更新；accepted uncertainty-adjusted gain 作为真实非负有利项进入 selected trajectory 的 Lyapunov budget。
 
 当前理论不证明：
 
@@ -20,8 +20,6 @@ concrete mini-batch filtration correctness
 iterate convergence to a unique point
 ```
 
-理论审查的首要任务不是重新证明所有代数，而是阻止上述边界在论文中被放大。
-
 ## 2. 稳定 theorem 入口
 
 所有 paper-facing theorem 应从以下命名空间引用：
@@ -30,32 +28,30 @@ iterate convergence to a unique point
 OUSVRBLO.ICMLTheoryPackage
 ```
 
-当前稳定声明：
+完整稳定声明如下：
 
 ```text
-fallback_safe_finite_horizon
-fallback_safe_objective_gradient_finite_horizon
+ICMLTheoryPackage.fallback_safe_finite_horizon
+ICMLTheoryPackage.fallback_safe_objective_gradient_finite_horizon
 
-certified_gain_average
-certified_gain_same_iterate
-certified_gain_objective_gradient_same_iterate
-positive_gain_strictly_tightens
+ICMLTheoryPackage.certified_gain_average
+ICMLTheoryPackage.certified_gain_same_iterate
+ICMLTheoryPackage.certified_gain_objective_gradient_same_iterate
+ICMLTheoryPackage.positive_gain_strictly_tightens
 
-proximal_response_error_certificate
-proximal_baseline_sequence_certificate
+ICMLTheoryPackage.proximal_response_error_certificate
+ICMLTheoryPackage.proximal_baseline_sequence_certificate
 
-stochastic_expected_finite_horizon
-stochastic_expected_gain_adjusted_average
-stochastic_expected_same_iterate
-stochastic_positive_gain_strictly_tightens
-stochastic_variance_rate
+ICMLTheoryPackage.stochastic_expected_finite_horizon
+ICMLTheoryPackage.stochastic_expected_gain_adjusted_average
+ICMLTheoryPackage.stochastic_expected_same_iterate
+ICMLTheoryPackage.stochastic_positive_gain_strictly_tightens
+ICMLTheoryPackage.stochastic_variance_rate
 ```
 
-审稿时应引用这些 stable wrappers，而不是依赖底层结构名称。底层 theorem 可用于核对 proof path，但不应成为论文唯一映射入口。
+底层 theorem 可用于追踪 proof path，但论文 coverage table 应优先引用这些 stable wrappers。
 
-## 3. 四项主结果
-
-### 3.1 Fallback-safe finite-horizon theorem
+## 3. Theorem 1：fallback-safe finite-horizon budget
 
 定义：
 
@@ -87,8 +83,7 @@ $$
 $$
 C_\Gamma
 =
-\frac{\eta\lambda^2}{2}
-+2\alpha A_\eta\lambda^2,
+\frac{\eta\lambda^2}{2}+2\alpha A_\eta\lambda^2,
 $$
 
 $$
@@ -97,21 +92,14 @@ $$
 \le\frac34\eta\lambda^2.
 $$
 
-objective-gradient 版本必须额外提供：
+必须区分：
 
-$$
-G_t=\nabla P(z_t).
-$$
+- `fallback_safe_finite_horizon`：对 trajectory descent vector $G_t$ 的预算；
+- `fallback_safe_objective_gradient_finite_horizon`：额外要求 `TrajectoryGradientCertificate`，从而 $G_t=\nabla P(z_t)$。
 
-对应：
+若稿件只使用前者，却将 $G_t$ 直接称为 objective gradient，应判定为语义错误。
 
-```text
-ICMLTheoryPackage.fallback_safe_objective_gradient_finite_horizon
-```
-
-若论文只引用 vector-level theorem，却把 $G_t$ 称为 objective gradient，应判定为语义错误。
-
-### 3.2 Gain-adjusted selected-trajectory theorem
+## 4. Theorem 2：gain-adjusted selected-trajectory rate
 
 定义：
 
@@ -141,7 +129,7 @@ $$
 
 以及 same-horizon existence bound。
 
-还验证：
+同时：
 
 $$
 \mathcal B_T^{\mathrm{gain}}\le\mathcal B_T,
@@ -153,7 +141,7 @@ $$
 \sum_{t<T}\Gamma_t>0,
 $$
 
-则：
+则
 
 $$
 \mathcal B_T^{\mathrm{gain}}<\mathcal B_T.
@@ -161,17 +149,17 @@ $$
 
 允许的解释：
 
-> positive accumulated certified gain strictly tightens the upper bound for the selected trajectory.
+> Positive accumulated certified gain strictly tightens the upper bound for the selected trajectory.
 
 禁止的解释：
 
-> the learned trajectory is theoretically faster than the counterfactual baseline trajectory.
+> The learned trajectory is theoretically faster than the counterfactual baseline trajectory.
 
-后者需要两条轨道的耦合比较，当前 theorem 不提供。
+当前 theorem 没有构造两条 counterfactual trajectories 的耦合比较。
 
-### 3.3 Proximal local-response instantiation
+## 5. Theorem 3：proximal local-response instantiation
 
-定义 proximal lower-gradient map：
+定义：
 
 $$
 G_{\rho,x}(\xi)
@@ -183,8 +171,7 @@ $$
 
 $$
 \langle g_x(u)-g_x(w),u-w\rangle
-\ge
--\kappa\|u-w\|^2,
+\ge-\kappa\|u-w\|^2,
 $$
 
 $$
@@ -195,12 +182,11 @@ $$
 G_{\rho,x}(\xi^\star(x))=0,
 $$
 
-以及：
+以及
 
 $$
 \|\nabla_xh(x,\xi)-\nabla_xh(x,\xi^\star(x))\|
-\le
-L\|\xi-\xi^\star(x)\|.
+\le L\|\xi-\xi^\star(x)\|.
 $$
 
 Lean 验证：
@@ -213,27 +199,26 @@ $$
 \|G_{\rho,x}(\xi)\|^2.}
 $$
 
-应检查论文是否准确写成“principal response-error interface 的具体化”，而不是“全部主定理 assumptions 的完整具体化”。该 theorem 不自动给出 objective smoothness、base contraction、residual drift 或 proxy calibration。
+应将其表述为 principal response-error interface 的具体化，而不是全部主定理 assumptions 的完整具体化。它不自动证明 objective smoothness、base contraction、residual drift 或 proxy calibration。
 
-### 3.4 Stochastic expectation-level theorem
+## 6. Theorem 4：stochastic expectation-level theorem
 
-随机层先检查 scalar centered moment：
+centered moment 输入：
 
 $$
 \mathbb E_t\langle U_t,W_t\rangle=0,
 \qquad
-\mathbb E_t\|W_t\|^2\le\sigma_t^2,
+\mathbb E_t\|W_t\|^2\le\sigma_t^2.
 $$
 
-从而：
+因此：
 
 $$
 \mathbb E_t\|U_t+W_t\|^2
-\le
-\|U_t\|^2+\sigma_t^2.
+\le\|U_t\|^2+\sigma_t^2.
 $$
 
-expected Lyapunov coefficient：
+定义：
 
 $$
 C_\sigma
@@ -277,17 +262,15 @@ $$
 O\!\left(\frac1{\eta T}+\eta\sigma^2\right).
 $$
 
-审查时必须确认论文使用以下限定语：
+必须使用限定语：
 
-> under expected one-step interfaces induced by conditionally centered perturbations with bounded second moments.
+> Under expected one-step interfaces induced by conditionally centered perturbations with bounded second moments.
 
-当前 Lean 不包含具体概率空间、filtration、sampler measurability 或 high-probability theorem。
+当前 Lean 不形式化具体 probability space、filtration、sampler measurability 或 high-probability theorem。
 
-## 4. Primitive assumptions 与 derived facts
+## 7. Primitive assumptions 与 derived facts
 
-### 4.1 算法或证书输入
-
-顶层 deterministic trajectory API 真正存储：
+### 7.1 顶层真正存储的输入
 
 ```text
 proposal/base residual and proxy statistics
@@ -295,16 +278,16 @@ nonnegative tolerances, calibration radii and error budgets
 safe base contraction
 actual trajectory update identity
 objective smoothness before update substitution
-contractive map extracting the upper-variable displacement
+contractive upper-variable block map
 selected-response residual smoothness
 squared residual-gradient control
 objective lower boundedness
 step-size and small-step conditions
 ```
 
-### 4.2 Lean 自动推导
+### 7.2 Lean 自动推导的对象
 
-以下不应再次被论文列为独立假设：
+以下不应再次作为独立 assumptions：
 
 ```text
 accept/fallback branch
@@ -326,9 +309,7 @@ final gain-aware residual recursion
 all advertised Lyapunov coefficient inequalities
 ```
 
-若稿件把这些 derived facts 写成 assumptions，会弱化 theorem；若稿件完全不说明它们的来源，则会掩盖 selector 的贡献。
-
-## 5. selector 审查
+## 8. selector 与 residual envelope 审查
 
 proposal acceptance 必须是三条件合取：
 
@@ -352,78 +333,42 @@ $$
 \Gamma_t
 =
 \begin{cases}
-\widehat\Delta_t-\tau_t^e-\rho_t^P-\rho_t^B,
-&\text{accepted},\\
+\widehat\Delta_t-\tau_t^e-\rho_t^P-\rho_t^B,&\text{accepted},\\
 0,&\text{fallback}.
 \end{cases}
 $$
 
-审查清单：
-
-```text
-[ ] fallback round 的 Gamma 是否严格为 0
-[ ] accepted round 是否同时通过 residual test
-[ ] DeltaHat 是否扣除了 tauE、rhoProp、rhoBase
-[ ] 是否错误地对负 margin 做 max(0, margin) 后仍接受 proposal
-[ ] 是否把 nominal proxy improvement 称为 true gain
-```
-
-## 6. residual envelope 审查
-
-当前证明不用单一 $\widehat R_t$ 同时代表 base 和 selected residual，而是定义：
+共同 residual envelope：
 
 $$
 Q_t=R_t^B+\tau_t^R.
 $$
 
-必须核对：
+因此：
 
 $$
 R_t^B\le Q_t,
 \qquad
-R_t^O\le Q_t.
+R_t^O\le Q_t,
 $$
-
-base contraction：
-
-$$
-R_t^B\le(1-\theta)R_t+\varepsilon_t^B
-$$
-
-给出：
 
 $$
 Q_t\le(1-\theta)R_t+\varepsilon_t^B+\tau_t^R.
 $$
 
-若稿件重新使用：
-
-$$
-e_t^B\le C_RR_t^O+b_t
-$$
-
-而没有额外反向 residual bound，应判定证明链不闭合。
-
-## 7. 梯度语义审查
-
-Lean 区分：
-
-1. 满足 smoothness inequality 的 descent vector $G_t$；
-2. 实际 objective gradient $\nabla P(z_t)$。
-
-只有在提供：
+审查红旗：
 
 ```text
-TrajectoryGradientCertificate
+fallback round 仍保留正 Gamma
+只通过 proxy test 就接受 proposal
+负 margin 截断为 0 后仍接受 proposal
+DeltaHat 未扣除 tauE、rhoProp、rhoBase
+用 selected residual 反向替代 base residual
 ```
 
-后才有：
+## 9. 梯度语义审查
 
-$$
-G_t=\nabla P(z_t).
-$$
-
-固定罚目标的梯度分解为：
+fixed-penalty gradient：
 
 $$
 G_t
@@ -449,9 +394,9 @@ G_t+E_t
 +\lambda\bigl(\nabla h_t-\operatorname{embed}(g_t^O)\bigr).
 $$
 
-若论文定义的实际更新方向与该分解不一致，不能引用当前 trajectory theorem。
+若实际更新方向不是 selector 最终选择的 response gradient 所诱导的方向，不能引用当前 trajectory theorem。
 
-## 8. 系数审查
+## 10. 系数审查
 
 核心参数：
 
@@ -462,8 +407,7 @@ $$
 $$
 A_\eta
 =
-\frac{\eta}{2\sqrt2\lambda}
-+\frac{L_R\eta^2}{2},
+\frac{\eta}{2\sqrt2\lambda}+\frac{L_R\eta^2}{2},
 $$
 
 $$
@@ -478,7 +422,7 @@ $$
 C_R\beta_\eta\le\frac\theta4.
 $$
 
-由此应推出：
+它应推出：
 
 $$
 2\alpha A_\eta\le\frac\eta4,
@@ -500,19 +444,21 @@ C_b=\frac34\eta\lambda^2,
 C_d=\frac{\eta\lambda^2C_R}{\theta}.
 $$
 
-审查时重点查找：
+重点查找：
 
-- 漏掉的 $\lambda^2$；
-- drift 中 gain 项的系数是否是 $2A_\eta\lambda^2$；
-- stochastic coefficient 是否为 $L_P\eta^2/2+\alpha A_\eta$；
-- residual average bound 除数是否含 $\lambda^2C_R$；
-- gradient-norm tolerance 是否使用 $\epsilon^2$，对应 $O(\epsilon^{-2})$。
+```text
+missing lambda^2 factors
+wrong 2*Aeta*lambda^2 gain coefficient in residual drift
+wrong Csigma = LP*eta^2/2 + alpha*Aeta
+residual average denominator missing lambda^2*CR
+epsilon-stationarity stated with O(epsilon^-1) instead of O(epsilon^-2)
+```
 
-## 9. perturbation regimes 审查
+## 11. perturbation regimes
 
-### 9.1 Summable perturbations
+### Summable
 
-若：
+若
 
 $$
 \sum_t\varepsilon_t<\infty,
@@ -525,24 +471,16 @@ $$
 则可声明：
 
 $$
-\sum_t\|G_t\|^2<\infty,
-\qquad
-\sum_tR_t<\infty,
-$$
-
-从而：
-
-$$
 \|G_t\|\to0,
 \qquad
 R_t\to0.
 $$
 
-这仍不推出 $z_t$ 收敛到唯一点。
+这不推出 $z_t$ 收敛到唯一点。
 
-### 9.2 Cesàro-vanishing perturbations
+### Cesàro-vanishing
 
-若各误差的时间平均趋于零，只能声明：
+若误差时间平均趋于零，只能声明：
 
 $$
 \frac1T\sum_{t<T}\|G_t\|^2\to0,
@@ -552,15 +490,15 @@ $$
 
 不能升级为 pointwise convergence。
 
-### 9.3 Persistent bounded perturbations
+### Persistent bounded
 
-若：
+若
 
 $$
-C_\varepsilon\varepsilon_t+C_bb_t+C_dd_t\le\bar\delta,
+C_\varepsilon\varepsilon_t+C_b b_t+C_d d_t\le\bar\delta,
 $$
 
-结论是 neighborhood：
+则结论是 neighborhood：
 
 $$
 \frac1T\sum_{t<T}J_t
@@ -569,21 +507,15 @@ $$
 +\frac{4\bar\delta}{\eta}.
 $$
 
-固定 mini-batch noise 或固定 acceptance tolerance 不能被写成零误差收敛。
+固定 mini-batch noise 或固定 tolerance 不能被写成零误差收敛。
 
-## 10. local / constrained response 边界
+## 12. local / constrained response 边界
 
-当前 branch-envelope 和 proximal zero-gradient theorem 最适合：
-
-- unconstrained response；或
-- trust-region 内部解。
-
-若 response 位于约束边界，一般只有：
+当前 proximal zero-gradient theorem 最适合 unconstrained response 或 trust-region interior solution。若解位于边界，一般只有：
 
 $$
 -G_{\rho,x}(\xi^\star)
-\in
-N_{\mathcal Y}(\xi^\star),
+\in N_{\mathcal Y}(\xi^\star),
 $$
 
 而不是：
@@ -592,61 +524,49 @@ $$
 G_{\rho,x}(\xi^\star)=0.
 $$
 
-审稿时应确认：
+审查应确认实际方法是否使用 response projection；若使用，稿件是否明确 interior assumption 或另行给出 projected/normal-cone certificate。
 
-```text
-[ ] 实际方法是否使用 response projection
-[ ] 若使用，论文是否假设 represented response 为 interior
-[ ] 若不在 interior，是否错误引用 unconstrained proximal theorem
-```
+## 13. 固定目标与 reference refresh
 
-## 11. 固定目标与 reference refresh
-
-Lyapunov 证明要求一个 horizon 内的 $P$ 固定。若 proximal reference $\bar\xi$ 每轮变化，则：
-
-$$
-P_{t+1}\ne P_t\text{ 对应的同一个函数值序列}.
-$$
-
-这种 objective drift 不能仅凭 residual drift error $d_t$ 自动控制。审查应要求：
+Lyapunov 证明要求一个 horizon 内的 $P$ 固定。若 proximal reference $\bar\xi$ 每轮变化，则 objective 本身也变化。审查应要求：
 
 - reference 在 stage 内固定；或
-- 单独加入 objective drift budget；或
-- 降低 claim，仅把 theorem 用于每个 fixed-reference stage。
+- 单独加入 objective-drift budget；或
+- theorem 仅用于每个 fixed-reference stage。
 
-## 12. proxy calibration 审查
+仅把 reference refresh 写入 residual drift error $d_t$ 不足以自动控制 objective drift。
+
+## 14. proxy calibration 审查
 
 若使用 vector proxy sufficient condition：
 
 $$
 \|g^{\mathrm{proxy}}-g^v\|\le\delta,
-$$
-
-$$
+\qquad
 \|g^c-g^v\|\le B,
 $$
 
-则：
+则可取：
 
 $$
 \rho^c=\delta(2B+\delta).
 $$
 
-审稿人应追问：
+应追问：
 
 ```text
-[ ] delta 如何获得
-[ ] B 是否是理论上界还是观测值
-[ ] calibration 是否与 acceptance batch 独立或至少条件有效
-[ ] rhoProp 与 rhoBase 是否允许不同
-[ ] tauE 是否也被扣除
+delta 的来源
+B 是理论上界还是观测值
+calibration 是否在 acceptance 条件下仍有效
+rhoProp 与 rhoBase 是否分别校准
+tauE 是否已被扣除
 ```
 
 没有 calibration argument 时，$\Gamma_t$ 只能被称为 heuristic score，不能被称为 certified true-error gain。
 
-## 13. Lean 重现与信任检查
+## 15. Lean 重现与信任检查
 
-标准验证命令：
+标准命令：
 
 ```bash
 bash scripts/verify.sh
@@ -661,25 +581,19 @@ Markdown and theorem-export synchronization
 Lean build-log diagnostic scan
 ```
 
-依赖由 `lake-manifest.json` 锁定。形式化审查还应记录：
+审查记录应包含：
 
 ```text
+Git commit SHA
 lean-toolchain
 mathlib revision
-Git commit SHA
 GitHub Actions run id
-number of errors/warnings/unsolved goals
+errors, warnings and unsolved-goal counts
 ```
 
-可选增强审计：对 stable theorem 运行：
+可选增强：对 stable theorem 执行 `#print axioms`，区分项目自身无自定义公理与依赖库中使用的经典公理。
 
-```lean
-#print axioms OUSVRBLO.ICMLTheoryPackage.fallback_safe_finite_horizon
-```
-
-以及其余 stable exports。该步骤可进一步区分项目自身无 `axiom` 关键字与依赖库中使用的经典公理。
-
-## 14. 允许与禁止的 claim
+## 16. 允许与禁止的 claim
 
 ### 允许
 
@@ -689,7 +603,7 @@ certificate-selected response safety
 uncertainty-adjusted gain enters the Lyapunov budget
 positive accumulated gain strictly tightens the selected-trajectory upper bound
 proximal local response instantiates the key response-error certificate
-expected stochastic rate O(1/(eta*T) + eta*sigma^2) under expected interfaces
+expected rate O(1/(eta*T) + eta*sigma^2) under expected interfaces
 machine-checked coefficient-sensitive proof chain
 ```
 
@@ -705,9 +619,9 @@ arbitrary local response equals the global lower value minimizer
 iterates converge to a unique stationary point
 ```
 
-## 15. 与已有工作的定位
+## 17. 与已有工作的定位
 
-理论贡献不应仅表述为“learned optimizer 有 fallback，因此收敛”。更准确的差异化是：
+理论贡献不应只表述为“learned optimizer 有 fallback，因此收敛”。更准确的差异化是：
 
 $$
 \text{value-anchor-specific residual envelope}
@@ -719,15 +633,9 @@ $$
 \text{Lean-checked coefficient propagation}.
 $$
 
-审查相关工作时，应区分：
+应区分 generic learned-optimizer guard、general nonconvex BLO/KKT theory，以及本项目的 local fixed-penalty value-anchor safeguard。
 
-1. generic learned-optimizer guard；
-2. general nonconvex BLO/KKT theory；
-3. 本项目的 local fixed-penalty value-anchor safeguard。
-
-本项目不能在一般性上与 general nonconvex BLO theory 竞争；其价值在于方法专用的 certificate chain 和形式化可靠性。
-
-## 16. 最终审查表
+## 18. 最终审查表
 
 ### 数学闭合
 
@@ -745,7 +653,7 @@ $$
 ```text
 [ ] objective-gradient theorem 具有 TrajectoryGradientCertificate
 [ ] fixed-penalty objective 在 horizon 内固定
-[ ] selected response gradient 确实进入实际更新方向
+[ ] selected response gradient 进入实际更新方向
 [ ] local response 未被称为原始全局 minimizer
 [ ] projected/boundary response 没有误用零梯度 theorem
 ```
@@ -756,7 +664,7 @@ $$
 [ ] expected one-step interfaces 被明确列为 assumptions
 [ ] centered cross moment 与 variance bound 被说明
 [ ] 固定 bias/noise 没有被声称 pointwise 收敛到零
-[ ] O(T^-1/2) 结论包含 eta=O(T^-1/2) 与 small-step 限制
+[ ] O(T^-1/2) 包含 eta=O(T^-1/2) 与 small-step 限制
 ```
 
 ### 形式化与可复现
