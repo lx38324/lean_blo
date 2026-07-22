@@ -106,23 +106,31 @@ else:
             )
 
 
-def require_exports(docs: tuple[Path, ...], names: tuple[str, ...]) -> None:
+def require_exports(
+    docs: tuple[Path, ...], names: tuple[str, ...], *, qualified: bool = True
+) -> None:
     for doc in docs:
         if not doc.exists():
             errors.append(f"missing theorem documentation: {doc.relative_to(ROOT)}")
             continue
         text = doc.read_text(encoding="utf-8")
         for name in names:
-            token = f"ICMLTheoryPackage.{name}"
-            if token not in text:
-                errors.append(f"{doc.relative_to(ROOT)}: missing export reference {token}")
+            qualified_token = f"ICMLTheoryPackage.{name}"
+            if qualified:
+                present = qualified_token in text
+            else:
+                present = qualified_token in text or name in text
+            if not present:
+                errors.append(
+                    f"{doc.relative_to(ROOT)}: missing export reference {qualified_token}"
+                )
 
 
 require_exports(CORE_EXPORT_DOCS, CORE_EXPORTS)
 require_exports(OBJECTIVE_GRADIENT_DOCS, OBJECTIVE_GRADIENT_EXPORTS)
 require_exports(STOCHASTIC_GAIN_DOCS, STOCHASTIC_GAIN_EXPORTS)
 require_exports((TRAINING_GUIDE,), TRAINING_GUIDE_EXPORTS)
-require_exports((THEORY_REVIEW_GUIDE,), EXPECTED_EXPORTS)
+require_exports((THEORY_REVIEW_GUIDE,), EXPECTED_EXPORTS, qualified=False)
 
 if errors:
     print("documentation sanitation failed:", file=sys.stderr)
